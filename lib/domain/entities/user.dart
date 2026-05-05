@@ -1,12 +1,14 @@
 import 'role.dart';
 
 class User {
-  final String id;
-  final String name;
+  final String id; // id_user in ERD
+  final String name; // nama in ERD
   final String email;
   final String? phone;
   final String? profileImageUrl;
   final List<Role> roles; // A user can have multiple roles
+  final String? marketplaceId; // Reference to MarketPlace if user is a seller
+  final String? sellerId; // Reference to Seller/Toko if user is a seller
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? lastSyncedAt; // For offline sync tracking
@@ -19,6 +21,8 @@ class User {
     this.phone,
     this.profileImageUrl,
     required this.roles,
+    this.marketplaceId,
+    this.sellerId,
     required this.createdAt,
     required this.updatedAt,
     this.lastSyncedAt,
@@ -48,6 +52,8 @@ class User {
     String? phone,
     String? profileImageUrl,
     List<Role>? roles,
+    String? marketplaceId,
+    String? sellerId,
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? lastSyncedAt,
@@ -60,6 +66,8 @@ class User {
       phone: phone ?? this.phone,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       roles: roles ?? this.roles,
+      marketplaceId: marketplaceId ?? this.marketplaceId,
+      sellerId: sellerId ?? this.sellerId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,

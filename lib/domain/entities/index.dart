@@ -1,7 +1,14 @@
+export 'auth.dart';
 export 'location.dart';
+export 'marketplace.dart';
+export 'order.dart';
+export 'order_item.dart';
+export 'payment.dart';
+export 'payment_method.dart';
 export 'product.dart';
 export 'recommended_store.dart';
 export 'role.dart';
 export 'seller.dart';
+export 'shipment.dart';
 export 'store_category.dart';
 export 'user.dart';

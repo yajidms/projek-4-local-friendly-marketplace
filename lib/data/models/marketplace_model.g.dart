@@ -1,22 +1,22 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'user_model.dart';
+part of 'marketplace_model.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
+MarketPlaceModel _$MarketPlaceModelFromJson(Map<String, dynamic> json) =>
+    MarketPlaceModel(
       id: json['id'] as String,
       name: json['name'] as String,
-      email: json['email'] as String,
-      phone: json['phone'] as String?,
-      profileImageUrl: json['profileImageUrl'] as String?,
-      roles: (json['roles'] as List<dynamic>)
-          .map((e) => RoleModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      marketplaceId: json['marketplaceId'] as String?,
-      sellerId: json['sellerId'] as String?,
+      description: json['description'] as String?,
+      logoUrl: json['logoUrl'] as String?,
+      websiteUrl: json['websiteUrl'] as String?,
+      contactEmail: json['contactEmail'] as String?,
+      contactPhone: json['contactPhone'] as String?,
+      address: json['address'] as String?,
+      isActive: json['isActive'] as bool? ?? true,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       lastSyncedAt: json['lastSyncedAt'] == null
@@ -25,15 +25,17 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
       isSynced: json['isSynced'] as bool? ?? true,
     );
 
-Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
+Map<String, dynamic> _$MarketPlaceModelToJson(MarketPlaceModel instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'email': instance.email,
-      'phone': instance.phone,
-      'profileImageUrl': instance.profileImageUrl,
-      'roles': instance.roles,
-      'marketplaceId': instance.marketplaceId,
-      'sellerId': instance.sellerId,
+      'description': instance.description,
+      'logoUrl': instance.logoUrl,
+      'websiteUrl': instance.websiteUrl,
+      'contactEmail': instance.contactEmail,
+      'contactPhone': instance.contactPhone,
+      'address': instance.address,
+      'isActive': instance.isActive,
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
       'lastSyncedAt': instance.lastSyncedAt?.toIso8601String(),

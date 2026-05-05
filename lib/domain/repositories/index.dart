@@ -1,3 +1,4 @@
+export 'auth_repository.dart';
 export 'location_repository.dart';
 export 'product_repository.dart';
 export 'recommended_store_repository.dart';
