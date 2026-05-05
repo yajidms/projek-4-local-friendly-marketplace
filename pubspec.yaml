@@ -29,13 +29,20 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   bloc: ^9.2.0
-  bloc_lint: ^0.1.0
+  bloc_lint: ^0.3.7
   cupertino_icons: ^1.0.8
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
   flutter_dotenv: ^6.0.0
   http: ^1.1.0
+  # Image management — Seller UI (NFR-03: compress < 500KB)
+  image_picker: ^1.1.2
+  flutter_image_compress: ^2.3.0
+  # Utilities — Seller UI
+  path_provider: ^2.1.5
+  path: ^1.9.0
+  uuid: ^4.5.1
   json_annotation: ^4.9.0
   opencv_dart: ^1.4.3
 
