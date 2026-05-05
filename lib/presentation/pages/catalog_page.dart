@@ -1,0 +1,108 @@
+import 'package:flutter/material.dart';
+// Sesuaikan path import ini dengan letak file app_router.dart di proyek Anda
+import '../../app/routes/app_router.dart'; 
+
+class CatalogPage extends StatelessWidget {
+  const CatalogPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.green,
+        title: const Text('Katalog', style: TextStyle(color: Colors.white)),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // Search bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: const TextField(
+                decoration: InputDecoration(
+                  icon: Icon(Icons.search, color: Colors.black54),
+                  hintText: 'Masukkan nama produk',
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Grid Produk
+            Expanded(
+              child: GridView.builder(
+                itemCount: 6,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.8,
+                ),
+                itemBuilder: (context, index) {
+                  // DIBUNGKUS DENGAN INKWELL AGAR BISA DIKLIK
+                  return InkWell(
+                    onTap: () {
+                      // Navigasi ke halaman Detail Produk
+                      Navigator.pushNamed(context, AppRoutes.product);
+                    },
+                    borderRadius: BorderRadius.circular(12), // Efek klik mengikuti lengkungan border
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.grey[400],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Center(child: Icon(Icons.image, color: Colors.white)),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text('Nama Produk: blablablablablabla', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold), maxLines: 2, overflow: TextOverflow.ellipsis),
+                          const SizedBox(height: 4),
+                          const Text('Harga        : Rp xx.xxx,xx', style: TextStyle(fontSize: 10)),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            )
+          ],
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.black54,
+        onTap: (index) {
+          // Navigasi berdasarkan menu yang diklik di bawah
+          if (index == 1) {
+            // Keranjang -> diarahkan ke Checkout sementara
+            Navigator.pushNamed(context, AppRoutes.checkout);
+          } else if (index == 2) {
+            // Ikon Riwayat Transaksi
+            Navigator.pushNamed(context, AppRoutes.transaction);
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: ''),
+        ],
+      ),
+    );
+  }
+}
