@@ -13,6 +13,8 @@ class UserModel {
   final String? phone;
   final String? profileImageUrl;
   final List<RoleModel> roles;
+  final String? marketplaceId;
+  final String? sellerId;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? lastSyncedAt;
@@ -25,6 +27,8 @@ class UserModel {
     this.phone,
     this.profileImageUrl,
     required this.roles,
+    this.marketplaceId,
+    this.sellerId,
     required this.createdAt,
     required this.updatedAt,
     this.lastSyncedAt,
@@ -38,6 +42,8 @@ class UserModel {
     String? phone,
     String? profileImageUrl,
     List<RoleModel>? roles,
+    String? marketplaceId,
+    String? sellerId,
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? lastSyncedAt,
@@ -50,6 +56,8 @@ class UserModel {
       phone: phone ?? this.phone,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       roles: roles ?? this.roles,
+      marketplaceId: marketplaceId ?? this.marketplaceId,
+      sellerId: sellerId ?? this.sellerId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
@@ -66,6 +74,8 @@ class UserModel {
       phone: phone,
       profileImageUrl: profileImageUrl,
       roles: roles.map((r) => r.toEntity()).toList(),
+      marketplaceId: marketplaceId,
+      sellerId: sellerId,
       createdAt: createdAt,
       updatedAt: updatedAt,
       lastSyncedAt: lastSyncedAt,
@@ -82,6 +92,8 @@ class UserModel {
       phone: user.phone,
       profileImageUrl: user.profileImageUrl,
       roles: user.roles.map((r) => RoleModel.fromEntity(r)).toList(),
+      marketplaceId: user.marketplaceId,
+      sellerId: user.sellerId,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       lastSyncedAt: user.lastSyncedAt,

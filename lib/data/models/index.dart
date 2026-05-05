@@ -1,4 +1,6 @@
+export 'auth_model.dart';
 export 'location_model.dart';
+export 'marketplace_model.dart';
 export 'product_model.dart';
 export 'recommended_store_model.dart';
 export 'role_model.dart';

@@ -29,14 +29,15 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   bloc: ^9.2.0
-  bloc_lint: 0.3.7
+  bloc_lint: ^0.1.0
   cupertino_icons: ^1.0.8
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
+  flutter_dotenv: ^6.0.0
+  http: ^1.1.0
   json_annotation: ^4.9.0
   opencv_dart: ^1.4.3
-  flutter_dotenv: ^6.0.0
 
 dev_dependencies:
   build_runner: ^2.4.6
