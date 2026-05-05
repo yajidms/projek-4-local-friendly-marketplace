@@ -37,7 +37,7 @@ dependencies:
   flutter_dotenv: ^6.0.0
   http: ^1.1.0
   json_annotation: ^4.9.0
-  opencv_dart: ^1.4.3
+  # opencv_dart: ^1.4.3
 
 dev_dependencies:
   build_runner: ^2.4.6
@@ -50,6 +50,8 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 # The following section is specific to Flutter packages.
 flutter:
+  assets:
+    - .env
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
