@@ -2,11 +2,18 @@
 
 import 'package:flutter/material.dart';
 
+import '../pages/auth_placeholder_page.dart';
+import '../pages/main_placeholder_page.dart';
 import '../presentation/features/seller/views/seller_dashboard_view.dart';
 import '../presentation/features/seller/views/seller_registration_view.dart';
 
 /// Named route constants used throughout the app.
 class AppRoutes {
+  // ── Master branch routes ──────────────────────────────────────
+  static const String auth = '/auth';
+  static const String main = '/main';
+
+  // ── Seller branch routes ──────────────────────────────────────
   static const String sellerRegistration = '/seller/registrasi';
   static const String sellerDashboard = '/seller/dashboard';
 }
@@ -17,6 +24,14 @@ class AppRoutes {
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
+      // ── Master placeholder routes ─────────────────────────────
+      case AppRoutes.main:
+        return MaterialPageRoute<void>(
+          builder: (_) => const MainPlaceholderPage(),
+          settings: settings,
+        );
+
+      // ── Seller routes ─────────────────────────────────────────
       case AppRoutes.sellerRegistration:
         return PageRouteBuilder<void>(
           settings: settings,
@@ -36,7 +51,6 @@ class AppRouter {
         );
 
       case AppRoutes.sellerDashboard:
-      default:
         return PageRouteBuilder<void>(
           settings: settings,
           pageBuilder: (_, a, __) => const SellerDashboardView(),
@@ -45,6 +59,14 @@ class AppRouter {
             child: child,
           ),
           transitionDuration: const Duration(milliseconds: 300),
+        );
+
+      // ── Default: auth ─────────────────────────────────────────
+      case AppRoutes.auth:
+      default:
+        return MaterialPageRoute<void>(
+          builder: (_) => const AuthPlaceholderPage(),
+          settings: settings,
         );
     }
   }
