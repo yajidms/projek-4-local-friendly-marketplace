@@ -164,6 +164,8 @@ class _SellerNavDrawerState extends State<SellerNavDrawer>
             title: Text('Keluar',
                 style: SellerTheme.labelStyle
                     .copyWith(color: SellerTheme.errorRed)),
+            // TODO(auth): Implementasi logout yang sesungguhnya di branch Auth.
+            // Saat ini hanya menutup drawer — belum membersihkan sesi/BLoC.
             onTap: () => Navigator.of(context).pop(),
           ),
           const SizedBox(height: 8),

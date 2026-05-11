@@ -26,31 +26,8 @@ const _jenisUsahaList = [
 class SellerRegistrationView extends StatelessWidget {
   const SellerRegistrationView({super.key});
 
-  /// NFR-ATR-03: Transisi slide-up ≤ 300ms.
-  static Route<void> route() => PageRouteBuilder<void>(
-        pageBuilder: (_, a, __) =>
-            BlocProvider.value(
-              value: BlocProvider.of<SellerRegistrationBloc>(
-                  _routeContext!, listen: false),
-              child: const SellerRegistrationView(),
-            ),
-        transitionsBuilder: (_, a, __, child) => SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 1),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-              parent: a, curve: SellerTheme.animationCurve)),
-          child: child,
-        ),
-        transitionDuration: SellerTheme.pageTransitionDuration,
-      );
-
-  // Simpan context sementara untuk route (dipanggil dari luar)
-  static BuildContext? _routeContext;
-
   @override
   Widget build(BuildContext context) {
-    _routeContext = context;
     return Theme(
       data: SellerTheme.sellerThemeData,
       child: const _RegistrationBody(),

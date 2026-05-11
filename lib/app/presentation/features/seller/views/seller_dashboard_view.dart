@@ -93,7 +93,8 @@ class _DashboardBodyState extends State<_DashboardBody> {
                 onPressed: isSyncing
                     ? null
                     : () => ctx.read<ProductBloc>().add(
-                          SinkronkanProduk(sellerId: 'current_seller_id'),
+                          // TODO(auth): Ganti dengan ID dari sesi autentikasi
+                          SinkronkanProduk(sellerId: 'mock-seller-001'),
                         ),
               );
             },
@@ -111,7 +112,8 @@ class _DashboardBodyState extends State<_DashboardBody> {
       drawer: SellerNavDrawer(
         selectedItem: _activeItem,
         onItemSelected: _onNavItemSelected,
-        shopName: 'Nama Toko Saya', // Ganti dengan data dari sesi
+        // TODO(auth): Ganti dengan nama toko dari sesi autentikasi
+        shopName: 'Warung Bu Sari',
       ),
 
       // ── Konten Utama ───────────────────────────────────────────────────────
@@ -274,7 +276,8 @@ class _GreetingBanner extends StatelessWidget {
                       color: Colors.white,
                       fontSize: 13),
                 ),
-                const Text('Nama Toko Saya',
+                // TODO(auth): Ganti dengan nama toko dari sesi autentikasi
+                const Text('Warung Bu Sari',
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 17,

@@ -12,8 +12,8 @@ import 'app/presentation/features/seller/bloc/seller_registration_bloc.dart';
 import 'app/presentation/features/seller/views/seller_dashboard_view.dart';
 import 'app/presentation/features/seller/views/seller_registration_view.dart';
 import 'app/theme/seller_theme.dart';
-import 'testing/mock_product_repository.dart';
-import 'testing/mock_seller_repository.dart';
+import 'testing/mock_repositories.dart';
+
 
 void main() {
   runApp(const PaDeTestApp());

@@ -30,23 +30,31 @@ class SellerRegistrationState {
       jenisUsaha != null &&
       alamatLengkap.isNotEmpty;
 
+  // Sentinel untuk membedakan "tidak di-pass" vs "sengaja di-set ke null"
+  static const Object _absent = Object();
+
   SellerRegistrationState copyWith({
     String? namaToko,
     String? kategoriProduk,
-    String? jenisUsaha,
+    Object? jenisUsaha = _absent, // Gunakan sentinel agar bisa reset ke null
     String? alamatLengkap,
-    String? pathGambarTandaPengenal,
+    Object? pathGambarTandaPengenal = _absent,
     StatusRegistrasi? status,
-    String? pesanError,
+    Object? pesanError = _absent,
   }) =>
       SellerRegistrationState(
         namaToko: namaToko ?? this.namaToko,
         kategoriProduk: kategoriProduk ?? this.kategoriProduk,
-        jenisUsaha: jenisUsaha ?? this.jenisUsaha,
+        jenisUsaha: jenisUsaha == _absent
+            ? this.jenisUsaha
+            : jenisUsaha as String?,
         alamatLengkap: alamatLengkap ?? this.alamatLengkap,
-        pathGambarTandaPengenal:
-            pathGambarTandaPengenal ?? this.pathGambarTandaPengenal,
+        pathGambarTandaPengenal: pathGambarTandaPengenal == _absent
+            ? this.pathGambarTandaPengenal
+            : pathGambarTandaPengenal as String?,
         status: status ?? this.status,
-        pesanError: pesanError ?? this.pesanError,
+        pesanError: pesanError == _absent
+            ? this.pesanError
+            : pesanError as String?,
       );
 }
