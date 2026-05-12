@@ -61,11 +61,12 @@ class _InventoryViewState extends State<InventoryView> {
   }
 
   Widget _buildInventory(BuildContext context, List<Product> products) {
+    // Stok Habis  : qty == 0
+    // Stok Rendah : qty > 0 && qty < 5 (threshold)
+    // Tersedia    : qty >= 5
+    final lowStockCount = products.where((p) => p.quantity > 0 && p.quantity < 5).length;
+    final outOfStockCount = products.where((p) => p.quantity == 0).length;
     final hasChanges = _draftStock.isNotEmpty;
-    final lowStockCount =
-        products.where((p) => p.quantity < 5 && p.isAvailable).length;
-    final outOfStockCount =
-        products.where((p) => p.quantity == 0 || !p.isAvailable).length;
 
     return Column(
       children: [
@@ -91,7 +92,7 @@ class _InventoryViewState extends State<InventoryView> {
               if (outOfStockCount > 0)
                 _SummaryChip(
                   icon: Icons.remove_shopping_cart_rounded,
-                  label: '$outOfStockCount Habis',
+                  label: '$outOfStockCount Stok Habis',
                   color: SellerTheme.errorRed,
                 ),
             ],
@@ -116,6 +117,7 @@ class _InventoryViewState extends State<InventoryView> {
                     final isChanged = _draftStock.containsKey(product.id) &&
                         _draftStock[product.id] != product.quantity;
                     return _InventoryCard(
+                      key: ValueKey(product.id), // ← penting: cegah state reuse
                       product: product,
                       currentStock: currentStock,
                       isChanged: isChanged,
@@ -212,6 +214,7 @@ class _InventoryCard extends StatefulWidget {
   final ValueChanged<int> onDirectEdit;
 
   const _InventoryCard({
+    super.key, // ← diperlukan agar ValueKey dari ListView bekerja
     required this.product,
     required this.currentStock,
     required this.isChanged,
@@ -255,11 +258,19 @@ class _InventoryCardState extends State<_InventoryCard> {
   @override
   Widget build(BuildContext context) {
     final p = widget.product;
+    // ── 3 + 1 state stok ─────────────────────────────────────────────────
+    // 1. Stok Habis   : qty == 0             (merah)
+    // 2. Stok Rendah  : 0 < qty < 5          (oranye)
+    // 3. Tidak Tersedia: qty ≥ 0, !isAvail   (abu-abu)
+    // 4. Tersedia     : qty ≥ 5 && isAvail   (hijau)
     Color statusColor;
     String statusLabel;
-    if (!p.isAvailable || widget.currentStock == 0) {
+    if (widget.currentStock == 0) {
       statusColor = SellerTheme.errorRed;
-      statusLabel = 'Habis';
+      statusLabel = 'Stok Habis';
+    } else if (!p.isAvailable) {
+      statusColor = const Color(0xFF9E9E9E);
+      statusLabel = 'Tdk Tersedia';
     } else if (widget.currentStock < 5) {
       statusColor = SellerTheme.syncPending;
       statusLabel = 'Stok Rendah';

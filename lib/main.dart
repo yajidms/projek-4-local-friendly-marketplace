@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'app/presentation/features/seller/bloc/product_bloc.dart';
 import 'app/presentation/features/seller/bloc/seller_registration_bloc.dart';
@@ -16,7 +17,10 @@ import 'app/theme/seller_theme.dart';
 import 'testing/mock_repositories.dart';
 
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Inisialisasi locale Bahasa Indonesia untuk DateFormat
+  await initializeDateFormatting('id', null);
   runApp(const PaDeTestApp());
 }
 

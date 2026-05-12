@@ -357,12 +357,15 @@ class _StokBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     Color color;
     String label;
-    if (!product.isAvailable || product.quantity == 0) {
+    if (product.quantity == 0) {
       color = SellerTheme.errorRed;
-      label = 'Habis';
+      label = 'Stok Habis';
+    } else if (!product.isAvailable) {
+      color = const Color(0xFF9E9E9E);
+      label = 'Tdk Tersedia';
     } else if (product.quantity < 5) {
       color = SellerTheme.syncPending;
-      label = 'Stok: ${product.quantity}';
+      label = 'Stok Rendah: ${product.quantity}';
     } else {
       color = SellerTheme.primaryGreen;
       label = 'Stok: ${product.quantity}';

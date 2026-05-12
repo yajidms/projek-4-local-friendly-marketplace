@@ -6,6 +6,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../../../../theme/seller_theme.dart';
@@ -108,14 +109,23 @@ class _ImagePreview extends StatelessWidget {
   Widget build(BuildContext context) => ClipRRect(
         borderRadius:
             BorderRadius.circular(SellerTheme.borderRadiusSmall),
-        child: Image.file(
-          File(path),
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) =>
-              const _DashedBox(size: 120),
-        ),
+        // Web tidak mendukung Image.file — gunakan Image.network
+        // (image_picker di web mengembalikan blob URL)
+        child: kIsWeb
+            ? Image.network(
+                path,
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const _DashedBox(size: 120),
+              )
+            : Image.file(
+                File(path),
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const _DashedBox(size: 120),
+              ),
       );
 }
 
