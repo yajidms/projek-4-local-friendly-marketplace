@@ -12,6 +12,7 @@ import '../../../../theme/seller_theme.dart';
 enum SellerNavItem {
   beranda,
   penjualan,
+  inventaris,
   daftarProduk,
   tambahProduk,
   statistik,
@@ -25,6 +26,8 @@ extension SellerNavItemLabel on SellerNavItem {
         return 'Beranda';
       case SellerNavItem.penjualan:
         return 'Penjualan';
+      case SellerNavItem.inventaris:
+        return 'Inventaris';
       case SellerNavItem.daftarProduk:
         return 'Daftar Produk';
       case SellerNavItem.tambahProduk:
@@ -42,6 +45,8 @@ extension SellerNavItemLabel on SellerNavItem {
         return Icons.home_rounded;
       case SellerNavItem.penjualan:
         return Icons.receipt_long_rounded;
+      case SellerNavItem.inventaris:
+        return Icons.warehouse_rounded;
       case SellerNavItem.daftarProduk:
         return Icons.list_alt_rounded;
       case SellerNavItem.tambahProduk:
@@ -131,6 +136,11 @@ class _SellerNavDrawerState extends State<SellerNavDrawer>
                   item: SellerNavItem.penjualan,
                   selected: widget.selectedItem == SellerNavItem.penjualan,
                   onTap: () => _select(SellerNavItem.penjualan),
+                ),
+                _NavTile(
+                  item: SellerNavItem.inventaris,
+                  selected: widget.selectedItem == SellerNavItem.inventaris,
+                  onTap: () => _select(SellerNavItem.inventaris),
                 ),
 
                 // ── Katalog (expandable) ──────────────────────────────────

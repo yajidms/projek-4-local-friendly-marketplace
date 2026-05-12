@@ -34,3 +34,15 @@ class SinkronkanProduk extends ProductEvent {
   final String sellerId;
   SinkronkanProduk({required this.sellerId});
 }
+
+/// Perbarui stok (quantity) produk langsung dari halaman Inventaris.
+class PerbaruiStokProduk extends ProductEvent {
+  final String productId;
+  final String sellerId;
+  final int stokBaru;
+  PerbaruiStokProduk({
+    required this.productId,
+    required this.sellerId,
+    required this.stokBaru,
+  });
+}

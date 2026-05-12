@@ -15,6 +15,10 @@ import '../../../../theme/seller_theme.dart';
 import '../bloc/product_bloc.dart';
 import '../widgets/dashboard_stat_card.dart';
 import '../widgets/seller_nav_drawer.dart';
+import 'inventory_view.dart';
+import 'product_form_view.dart';
+import 'product_list_view.dart';
+import 'transaction_list_view.dart';
 
 class SellerDashboardView extends StatelessWidget {
   const SellerDashboardView({super.key});
@@ -132,20 +136,13 @@ class _DashboardBodyState extends State<_DashboardBody> {
       case SellerNavItem.beranda:
         return const _BerandaContent(key: ValueKey('beranda'));
       case SellerNavItem.penjualan:
-        return _PlaceholderContent(
-            key: const ValueKey('penjualan'),
-            label: 'Penjualan',
-            icon: Icons.receipt_long_rounded);
+        return const TransactionListView(key: ValueKey('penjualan'));
+      case SellerNavItem.inventaris:
+        return const InventoryView(key: ValueKey('inventaris'));
       case SellerNavItem.daftarProduk:
-        return _PlaceholderContent(
-            key: const ValueKey('daftar'),
-            label: 'Daftar Produk',
-            icon: Icons.list_alt_rounded);
+        return const ProductListView(key: ValueKey('daftar'));
       case SellerNavItem.tambahProduk:
-        return _PlaceholderContent(
-            key: const ValueKey('tambah'),
-            label: 'Tambah Produk',
-            icon: Icons.add_box_rounded);
+        return const _TambahProdukContent(key: ValueKey('tambah'));
       case SellerNavItem.statistik:
         return _PlaceholderContent(
             key: const ValueKey('statistik'),
@@ -360,3 +357,80 @@ class _PlaceholderContent extends StatelessWidget {
     );
   }
 }
+
+/// Halaman "Tambah Produk" dalam konteks dashboard — menampilkan
+/// tombol yang membuka ProductFormView sebagai halaman baru.
+class _TambahProdukContent extends StatelessWidget {
+  const _TambahProdukContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: SellerTheme.primaryGreen.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.add_box_rounded,
+                  size: 44, color: SellerTheme.primaryGreen),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Tambah Produk Baru',
+              style: SellerTheme.subHeadingStyle,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Isi informasi produk yang ingin Anda jual di katalog PaDe.',
+              style: SellerTheme.bodyStyle,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  final bloc = context.read<ProductBloc>();
+                  Navigator.of(context).push(PageRouteBuilder<void>(
+                    pageBuilder: (_, a, __) => BlocProvider.value(
+                      value: bloc,
+                      child: const ProductFormView(),
+                    ),
+                    transitionsBuilder: (_, a, __, child) => SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 1),
+                        end: Offset.zero,
+                      ).animate(CurvedAnimation(
+                          parent: a, curve: Curves.easeInOut)),
+                      child: child,
+                    ),
+                    transitionDuration: SellerTheme.pageTransitionDuration,
+                  ));
+                },
+                icon: const Icon(Icons.add_rounded),
+                label: const Text('Mulai Tambah Produk'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: SellerTheme.primaryGreen,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(SellerTheme.borderRadius),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

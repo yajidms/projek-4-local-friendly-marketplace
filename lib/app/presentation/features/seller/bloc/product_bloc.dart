@@ -22,6 +22,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<PerbaruiProduk>(_onPerbarui);
     on<HapusProduk>(_onHapus);
     on<SinkronkanProduk>(_onSinkron);
+    on<PerbaruiStokProduk>(_onPerbaruiStok);
   }
 
   Future<void> _onMuat(
@@ -101,6 +102,19 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       // Sinkronisasi gagal — reload saja; produk tetap ada di lokal
     } finally {
       add(MuatProdukPenjual(sellerId: event.sellerId));
+    }
+  }
+
+  Future<void> _onPerbaruiStok(
+    PerbaruiStokProduk event,
+    Emitter<ProductState> emit,
+  ) async {
+    try {
+      await productRepository.updateProductQuantity(
+          event.productId, event.stokBaru);
+      add(MuatProdukPenjual(sellerId: event.sellerId));
+    } catch (e) {
+      emit(ProductGagal('Gagal memperbarui stok: ${e.toString()}'));
     }
   }
 }

@@ -37,6 +37,7 @@ dependencies:
   flutter_bloc: ^9.1.1
   flutter_dotenv: ^6.0.0
   http: ^1.1.0
+  intl: ^0.20.2
   json_annotation: ^4.9.0
   # Image management — Seller UI (NFR-03: compress < 500KB)
   image_picker: ^1.1.2

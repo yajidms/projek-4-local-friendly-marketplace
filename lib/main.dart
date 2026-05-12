@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'app/presentation/features/seller/bloc/product_bloc.dart';
 import 'app/presentation/features/seller/bloc/seller_registration_bloc.dart';
+import 'app/presentation/features/seller/bloc/transaction_bloc.dart';
 import 'app/presentation/features/seller/views/seller_dashboard_view.dart';
 import 'app/presentation/features/seller/views/seller_registration_view.dart';
 import 'app/theme/seller_theme.dart';
@@ -40,6 +41,12 @@ class PaDeTestApp extends StatelessWidget {
           create: (_) => ProductBloc(
             productRepository: MockProductRepository(),
           )..add(MuatProdukPenjual(sellerId: 'mock-seller-001')),
+        ),
+        // Provider TransactionBloc dengan mock repository + langsung load
+        BlocProvider<TransactionBloc>(
+          create: (_) => TransactionBloc(
+            orderRepository: MockOrderRepository(),
+          )..add(MuatTransaksiPenjual(sellerId: 'mock-seller-001')),
         ),
       ],
       child: MaterialApp(
@@ -123,12 +130,17 @@ class _TestingLaunchPad extends StatelessWidget {
               _TestButton(
                 icon: Icons.dashboard_rounded,
                 label: 'Dashboard Penjual',
-                subtitle: 'AppBar, Drawer, 3 Kartu Statistik',
+                subtitle: 'Daftar Produk, Tambah, Inventaris & Transaksi',
                 color: const Color(0xFF1565C0),
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => BlocProvider.value(
-                      value: context.read<ProductBloc>(),
+                    builder: (_) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider.value(
+                            value: context.read<ProductBloc>()),
+                        BlocProvider.value(
+                            value: context.read<TransactionBloc>()),
+                      ],
                       child: const SellerDashboardView(),
                     ),
                   ),
