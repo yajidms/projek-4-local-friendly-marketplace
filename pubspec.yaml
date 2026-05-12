@@ -31,10 +31,12 @@ dependencies:
   bloc: ^9.2.0
   bloc_lint: ^0.3.7
   cupertino_icons: ^1.0.8
+  fl_chart: ^1.2.0
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
   flutter_dotenv: ^6.0.0
+  google_fonts: ^6.2.1
   http: ^1.1.0
   json_annotation: ^4.9.0
   # opencv_dart: ^1.4.3

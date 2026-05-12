@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
+import 'admin/admin_app.dart';
 import 'config/env.dart';
 import 'app/pages/auth_placeholder_page.dart';
 import 'app/routes/app_router.dart';
@@ -7,7 +9,9 @@ import 'app/routes/app_router.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Env.load();
-  runApp(const MyApp());
+
+  // Web builds run the Admin Dashboard, mobile builds run the Buyer/Seller app.
+  runApp(kIsWeb ? const AdminApp() : const MyApp());
 }
 
 class MyApp extends StatelessWidget {
