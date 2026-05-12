@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import '../widgets/bottom_nav_bar.dart';
 
 class TransactionHistoryPage extends StatelessWidget {
-  const TransactionHistoryPage({Key? key}) : super(key: key);
+  const TransactionHistoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        // --- MATIKAN TOMBOL BACK OTOMATIS & MANUAL ---
+        automaticallyImplyLeading: false, 
         backgroundColor: Colors.green,
         title: const Text('Riwayat Transaksi', style: TextStyle(color: Colors.white)),
       ),
@@ -38,18 +41,14 @@ class TransactionHistoryPage extends StatelessWidget {
                 return Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(12)),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
                           Container(
-                            width: 50,
-                            height: 50,
+                            width: 50, height: 50,
                             decoration: BoxDecoration(color: Colors.grey[400], borderRadius: BorderRadius.circular(8)),
                           ),
                           const SizedBox(width: 12),
@@ -77,21 +76,13 @@ class TransactionHistoryPage extends StatelessWidget {
                             children: [
                               OutlinedButton(
                                 onPressed: () {},
-                                style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: Colors.green),
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                                  minimumSize: const Size(0, 30)
-                                ),
+                                style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.green), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0), minimumSize: const Size(0, 30)),
                                 child: const Text('Beri Ulasan', style: TextStyle(color: Colors.green, fontSize: 10)),
                               ),
                               const SizedBox(width: 8),
                               ElevatedButton(
                                 onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green,
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                                  minimumSize: const Size(0, 30)
-                                ),
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0), minimumSize: const Size(0, 30)),
                                 child: const Text('Beli Lagi', style: TextStyle(color: Colors.white, fontSize: 10)),
                               ),
                             ],
@@ -106,17 +97,7 @@ class TransactionHistoryPage extends StatelessWidget {
           )
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.black54,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: ''),
-        ],
-      ),
+      bottomNavigationBar: const AppBottomNavBar(currentIndex: 2),
     );
   }
 }
