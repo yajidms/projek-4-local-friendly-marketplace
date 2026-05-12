@@ -117,7 +117,7 @@ class _DashboardBodyState extends State<_DashboardBody> {
         selectedItem: _activeItem,
         onItemSelected: _onNavItemSelected,
         // TODO(auth): Ganti dengan nama toko dari sesi autentikasi
-        shopName: 'Warung Bu Sari',
+        shopName: 'PaDe Seller',
       ),
 
       // ── Konten Utama ───────────────────────────────────────────────────────
@@ -274,7 +274,7 @@ class _GreetingBanner extends StatelessWidget {
                       fontSize: 13),
                 ),
                 // TODO(auth): Ganti dengan nama toko dari sesi autentikasi
-                const Text('Warung Bu Sari',
+                const Text('PaDe Seller',
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 17,

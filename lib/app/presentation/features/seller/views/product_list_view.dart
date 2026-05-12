@@ -331,6 +331,10 @@ class _ProductCard extends StatelessWidget {
         return Icons.local_drink_rounded;
       case 'sembako':
         return Icons.shopping_basket_rounded;
+      case 'Kesehatan & Kecantikan':
+        return Icons.health_and_beauty;
+      case 'Kebersihan':
+        return Icons.cleaning_services_rounded;
       default:
         return Icons.inventory_2_rounded;
     }
