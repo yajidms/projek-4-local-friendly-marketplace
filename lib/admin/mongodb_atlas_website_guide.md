@@ -1,11 +1,5 @@
 # Panduan Setup Data API via Website MongoDB Atlas
 
-Jika Anda memilih untuk menghubungkan Flutter Web langsung ke MongoDB tanpa membuat backend Node.js, Anda wajib menggunakan fitur **Data API**. 
-
-Berikut adalah langkah-langkah untuk mengaktifkannya melalui website/dashboard MongoDB Atlas:
-
----
-
 ## Langkah 1: Buka Dashboard Atlas
 1. Buka web browser Anda dan kunjungi: [https://cloud.mongodb.com/](https://cloud.mongodb.com/)
 2. Login menggunakan akun MongoDB Anda.
@@ -39,5 +33,3 @@ Contoh penambahan di file `lib/.env` Anda:
 ATLAS_DATA_API_URL=https://data.mongodb-api.com/app/data-xxxxx/endpoint/data/v1
 ATLAS_API_KEY=kunci_panjang_anda_yang_dihasilkan_dari_web
 ```
-
-Setelah ini disimpan, Anda tinggal memberi tahu saya agar saya bisa membuatkan *script* di dalam Flutter Web untuk mulai menarik dan mendorong data ke database tersebut!
