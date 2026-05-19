@@ -23,7 +23,12 @@ const _kKategori = [
   'Lainnya',
 ];
 
-const _kSatuan = ['pcs', 'kg', 'gram', 'liter', 'ml', 'lusin', 'pak', 'dus'];
+const _kSatuan = [
+  'pcs', 'kg', 'gram', 'liter', 'ml',
+  'lusin', 'pak', 'dus',
+  // Satuan tambahan dari data produk
+  'karung', 'botol', 'bungkus', 'renceng', 'sachet', 'ikat', 'lembar',
+];
 
 class ProductFormView extends StatefulWidget {
   /// Null berarti mode TAMBAH, non-null berarti mode EDIT.
@@ -67,8 +72,14 @@ class _ProductFormViewState extends State<ProductFormView> {
     _beratCtrl = TextEditingController(
         text: p?.weight != null ? p!.weight!.toString() : '');
     _skuCtrl = TextEditingController(text: p?.sku ?? '');
-    _kategori = p?.category ?? _kKategori.first;
-    _satuan = p?.unit ?? _kSatuan.first;
+    // Pastikan nilai kategori & satuan produk ada di daftar pilihan.
+    // Jika tidak (misal data lama / seed pakai nilai berbeda), fallback ke item pertama.
+    final savedCategory = p?.category ?? _kKategori.first;
+    _kategori = _kKategori.contains(savedCategory) ? savedCategory : _kKategori.first;
+
+    final savedUnit = p?.unit ?? _kSatuan.first;
+    _satuan = _kSatuan.contains(savedUnit) ? savedUnit : _kSatuan.first;
+
     _tersedia = p?.isAvailable ?? true;
   }
 
