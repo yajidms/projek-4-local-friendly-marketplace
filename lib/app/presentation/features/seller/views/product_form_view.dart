@@ -40,6 +40,7 @@ class _ProductFormViewState extends State<ProductFormView> {
 
   late final TextEditingController _namaCtrl;
   late final TextEditingController _deskripsiCtrl;
+  late final TextEditingController _spesifikasiCtrl;
   late final TextEditingController _hargaCtrl;
   late final TextEditingController _stokCtrl;
   late final TextEditingController _beratCtrl;
@@ -58,6 +59,7 @@ class _ProductFormViewState extends State<ProductFormView> {
     final p = widget.existingProduct;
     _namaCtrl = TextEditingController(text: p?.name ?? '');
     _deskripsiCtrl = TextEditingController(text: p?.description ?? '');
+    _spesifikasiCtrl = TextEditingController(text: p?.specifications ?? '');
     _hargaCtrl =
         TextEditingController(text: p != null ? p.price.toInt().toString() : '');
     _stokCtrl = TextEditingController(
@@ -74,6 +76,7 @@ class _ProductFormViewState extends State<ProductFormView> {
   void dispose() {
     _namaCtrl.dispose();
     _deskripsiCtrl.dispose();
+    _spesifikasiCtrl.dispose();
     _hargaCtrl.dispose();
     _stokCtrl.dispose();
     _beratCtrl.dispose();
@@ -138,6 +141,14 @@ class _ProductFormViewState extends State<ProductFormView> {
                             hint: 'Jelaskan produk Anda...',
                             keyId: 'deskripsi',
                             maxLines: 3,
+                          ),
+                          const SizedBox(height: 16),
+                          _FieldLabel('Spesifikasi / Bahan'),
+                          _buildTextField(
+                            controller: _spesifikasiCtrl,
+                            hint: 'Contoh: Tepung terigu, gula, garam...\natau:\nBahan: 100% beras organik\nBerat bersih: 5 kg',
+                            keyId: 'spesifikasi',
+                            maxLines: 4,
                           ),
                         ]),
                         const SizedBox(height: 14),
@@ -363,6 +374,9 @@ class _ProductFormViewState extends State<ProductFormView> {
       sellerId: existing?.sellerId ?? 'mock-seller-001',
       name: _namaCtrl.text.trim(),
       description: _deskripsiCtrl.text.trim(),
+      specifications: _spesifikasiCtrl.text.trim().isNotEmpty
+          ? _spesifikasiCtrl.text.trim()
+          : null,
       price: double.parse(_hargaCtrl.text.trim()),
       quantity: int.tryParse(_stokCtrl.text.trim()) ?? 0,
       category: _kategori,

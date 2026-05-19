@@ -6,10 +6,17 @@
 // BLoC
 export 'bloc/product_bloc.dart';
 export 'bloc/seller_registration_bloc.dart';
+export 'bloc/transaction_bloc.dart';
 
 // Views
+export 'views/invoice_view.dart';
+export 'views/inventory_view.dart';
+export 'views/product_detail_view.dart';
+export 'views/product_form_view.dart';
+export 'views/product_list_view.dart';
 export 'views/seller_dashboard_view.dart';
 export 'views/seller_registration_view.dart';
+export 'views/transaction_list_view.dart';
 
 // Widgets
 export 'widgets/dashboard_stat_card.dart';

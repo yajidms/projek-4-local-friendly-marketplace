@@ -12,7 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../theme/seller_theme.dart';
+import '../../../../../domain/entities/index.dart';
 import '../bloc/product_bloc.dart';
+import '../bloc/transaction_bloc.dart';
 import '../widgets/dashboard_stat_card.dart';
 import '../widgets/seller_nav_drawer.dart';
 import 'inventory_view.dart';
@@ -169,30 +171,21 @@ class _BerandaContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Salam penjual
           _GreetingBanner(),
           const SizedBox(height: 20),
 
-          // ── 3 Placeholder Kartu Dashboard (Figma spec: background abu-abu)
-          Text('Ringkasan Toko',
-              style: SellerTheme.subHeadingStyle),
+          Text('Ringkasan Toko', style: SellerTheme.subHeadingStyle),
           const SizedBox(height: 12),
 
           // Kartu 1 — Total Produk
           BlocBuilder<ProductBloc, ProductState>(
             builder: (_, state) {
-              final total = state is ProductTertampil
-                  ? state.products.length
-                  : 0;
-              final belumSinkron = state is ProductTertampil
-                  ? state.jumlahBelumSinkron
-                  : 0;
+              final total = state is ProductTertampil ? state.products.length : 0;
+              final belumSinkron = state is ProductTertampil ? state.jumlahBelumSinkron : 0;
               return DashboardStatCard(
                 title: 'Total Produk',
                 value: '$total',
-                subtitle: belumSinkron > 0
-                    ? '$belumSinkron belum sinkron'
-                    : 'Semua tersinkron ✓',
+                subtitle: belumSinkron > 0 ? '$belumSinkron belum sinkron' : 'Semua tersinkron ✓',
                 icon: Icons.inventory_2_rounded,
                 accentColor: SellerTheme.primaryGreen,
               );
@@ -200,34 +193,80 @@ class _BerandaContent extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Kartu 2 — Penjualan Hari Ini (placeholder)
-          DashboardStatCard(
-            title: 'Penjualan Hari Ini',
-            value: 'Rp 0',
-            subtitle: '0 transaksi',
-            icon: Icons.shopping_bag_rounded,
-            accentColor: const Color(0xFF1565C0),
-            onTap: () {},
+          // Kartu 2 — Penjualan Hari Ini (dari TransactionBloc)
+          BlocBuilder<TransactionBloc, TransactionState>(
+            builder: (_, state) {
+              double salesToday = 0;
+              int countToday = 0;
+              if (state is TransaksiTertampil) {
+                final today = DateTime.now();
+                final todayOrders = state.semuaTransaksi.where((o) {
+                  final sameDay = o.createdAt.year == today.year &&
+                      o.createdAt.month == today.month &&
+                      o.createdAt.day == today.day;
+                  return sameDay && o.status == OrderStatus.delivered;
+                });
+                salesToday = todayOrders.fold(0.0, (sum, o) => sum + o.total);
+                countToday = todayOrders.length;
+              }
+              return DashboardStatCard(
+                title: 'Penjualan Hari Ini',
+                value: salesToday > 0 ? _fmtRp(salesToday) : 'Rp 0',
+                subtitle: '$countToday transaksi selesai',
+                icon: Icons.shopping_bag_rounded,
+                accentColor: const Color(0xFF1565C0),
+              );
+            },
           ),
           const SizedBox(height: 12),
 
-          // Kartu 3 — Rating Toko (placeholder)
+          // Kartu 3 — Pesanan Menunggu (dari TransactionBloc)
+          BlocBuilder<TransactionBloc, TransactionState>(
+            builder: (_, state) {
+              final pending = state is TransaksiTertampil ? state.jumlahMenunggu : 0;
+              return DashboardStatCard(
+                title: 'Pesanan Menunggu',
+                value: '$pending',
+                subtitle: pending > 0 ? 'Segera konfirmasi!' : 'Semua pesanan terproses ✓',
+                icon: Icons.pending_actions_rounded,
+                accentColor: const Color(0xFFE65100),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+
+          // Kartu 4 — Rating Toko (placeholder)
           DashboardStatCard(
             title: 'Rating Toko',
             value: '—',
             subtitle: 'Belum ada ulasan',
             icon: Icons.star_rounded,
             accentColor: const Color(0xFFF57F17),
-            onTap: () {},
           ),
           const SizedBox(height: 24),
 
-          // ── Info sinkronisasi (NFR-UND-02) ──────────────────────────────
+          // Quick Actions
+          Text('Aksi Cepat', style: SellerTheme.subHeadingStyle),
+          const SizedBox(height: 12),
+          _QuickActions(),
+          const SizedBox(height: 20),
+
           _SyncInfoBanner(),
           const SizedBox(height: 16),
         ],
       ),
     );
+  }
+
+  static String _fmtRp(double v) {
+    if (v >= 1000000) return 'Rp ${(v / 1000000).toStringAsFixed(1)}jt';
+    final s = v.toInt().toString();
+    final buf = StringBuffer('Rp ');
+    for (int i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write('.');
+      buf.write(s[i]);
+    }
+    return buf.toString();
   }
 }
 
@@ -283,6 +322,125 @@ class _GreetingBanner extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Quick Actions ────────────────────────────────────────────────────────────
+
+class _QuickActions extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _QuickActionBtn(
+          icon: Icons.add_box_rounded,
+          label: 'Tambah\nProduk',
+          color: SellerTheme.primaryGreen,
+          onTap: () {
+            final bloc = context.read<ProductBloc>();
+            Navigator.of(context).push(PageRouteBuilder<void>(
+              pageBuilder: (_, a, __) => BlocProvider.value(
+                value: bloc,
+                child: const ProductFormView(),
+              ),
+              transitionsBuilder: (_, a, __, child) => SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(parent: a, curve: Curves.easeInOut)),
+                child: child,
+              ),
+              transitionDuration: SellerTheme.pageTransitionDuration,
+            ));
+          },
+        ),
+        const SizedBox(width: 10),
+        _QuickActionBtn(
+          icon: Icons.receipt_long_rounded,
+          label: 'Lihat\nTransaksi',
+          color: const Color(0xFF1565C0),
+          onTap: () {
+            // Navigate to penjualan tab — find _DashboardBodyState above
+            final state = context.findAncestorStateOfType<_DashboardBodyState>();
+            state?._onNavItemSelected(SellerNavItem.penjualan);
+          },
+        ),
+        const SizedBox(width: 10),
+        _QuickActionBtn(
+          icon: Icons.warehouse_rounded,
+          label: 'Inventaris',
+          color: const Color(0xFF6A1B9A),
+          onTap: () {
+            final state = context.findAncestorStateOfType<_DashboardBodyState>();
+            state?._onNavItemSelected(SellerNavItem.inventaris);
+          },
+        ),
+        const SizedBox(width: 10),
+        _QuickActionBtn(
+          icon: Icons.list_alt_rounded,
+          label: 'Katalog',
+          color: const Color(0xFF00838F),
+          onTap: () {
+            final state = context.findAncestorStateOfType<_DashboardBodyState>();
+            state?._onNavItemSelected(SellerNavItem.daftarProduk);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _QuickActionBtn extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickActionBtn({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(SellerTheme.borderRadius),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
+            ),
+          ]),
+        ),
       ),
     );
   }

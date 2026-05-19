@@ -13,6 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../theme/seller_theme.dart';
 import '../../../../../domain/entities/product.dart';
 import '../bloc/product_bloc.dart';
+import 'product_detail_view.dart';
 import 'product_form_view.dart';
 
 class ProductListView extends StatefulWidget {
@@ -222,7 +223,7 @@ class _ProductCard extends StatelessWidget {
         margin: EdgeInsets.zero,
         child: InkWell(
           borderRadius: BorderRadius.circular(SellerTheme.borderRadius),
-          onTap: () => _navigateToForm(context, product),
+          onTap: () => _navigateToDetail(context, product),
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
@@ -305,6 +306,26 @@ class _ProductCard extends StatelessWidget {
         ),
       );
 
+  // Method ini mengarahkan ke ProductDetailView
+  void _navigateToDetail(BuildContext context, Product product) {
+    final bloc = context.read<ProductBloc>();
+    Navigator.of(context).push(PageRouteBuilder<void>(
+      pageBuilder: (_, a, __) => BlocProvider.value(
+        value: bloc,
+        child: ProductDetailView(product: product),
+      ),
+      transitionsBuilder: (_, a, __, child) => SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(1, 0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: a, curve: Curves.easeInOut)),
+        child: child,
+      ),
+      transitionDuration: SellerTheme.pageTransitionDuration,
+    ));
+  }
+
+  // Method ini hanya tersedia di dalam _ProductCard — navigasi langsung ke form edit
   void _navigateToForm(BuildContext context, Product product) {
     final bloc = context.read<ProductBloc>();
     Navigator.of(context).push(PageRouteBuilder<void>(

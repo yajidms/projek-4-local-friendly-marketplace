@@ -8,11 +8,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../theme/seller_theme.dart';
 import '../../../../../domain/entities/index.dart';
 import '../bloc/transaction_bloc.dart';
+import 'invoice_view.dart';
 
 class TransactionListView extends StatelessWidget {
   const TransactionListView({super.key});
@@ -135,17 +135,21 @@ class _TransactionBody extends StatelessWidget {
   }
 
   void _showDetail(BuildContext context, Order order) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    final bloc = context.read<TransactionBloc>();
+    Navigator.of(context).push(PageRouteBuilder<void>(
+      pageBuilder: (_, a, __) => BlocProvider.value(
+        value: bloc,
+        child: InvoiceView(order: order),
       ),
-      builder: (ctx) => BlocProvider.value(
-        value: context.read<TransactionBloc>(),
-        child: _OrderDetailSheet(order: order),
+      transitionsBuilder: (_, a, __, child) => SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(1, 0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: a, curve: Curves.easeInOut)),
+        child: child,
       ),
-    );
+      transitionDuration: SellerTheme.pageTransitionDuration,
+    ));
   }
 
   static String _formatRp(double value) {
@@ -330,254 +334,9 @@ class _OrderCard extends StatelessWidget {
   }
 }
 
-// ─── Order Detail Bottom Sheet ────────────────────────────────────────────────
-
-class _OrderDetailSheet extends StatelessWidget {
-  final Order order;
-  const _OrderDetailSheet({required this.order});
-
-  // Transisi status yang diperbolehkan untuk penjual
-  static List<OrderStatus> _allowedNextStatus(OrderStatus current) {
-    switch (current) {
-      case OrderStatus.pending:
-        return [OrderStatus.confirmed, OrderStatus.cancelled];
-      case OrderStatus.confirmed:
-        return [OrderStatus.processing, OrderStatus.cancelled];
-      case OrderStatus.processing:
-        return [OrderStatus.shipped];
-      case OrderStatus.shipped:
-        return [OrderStatus.delivered];
-      default:
-        return [];
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final nextStatuses = _allowedNextStatus(order.status);
-    final screenH = MediaQuery.of(context).size.height;
-
-    return Container(
-      constraints: BoxConstraints(maxHeight: screenH * 0.85),
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          const SizedBox(height: 12),
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: const Color(0xFFBDBDBD),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Header
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Text(
-                  'Detail Pesanan',
-                  style: SellerTheme.subHeadingStyle,
-                ),
-                const Spacer(),
-                Text(
-                  '#${order.id.toUpperCase()}',
-                  style: SellerTheme.bodyStyle.copyWith(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          const Divider(height: 1),
-
-          // Content
-          Flexible(
-            child: SingleChildScrollView(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Info tanggal
-                  _InfoRow(
-                    icon: Icons.calendar_today_rounded,
-                    label: 'Tanggal',
-                    value: _formatDate(order.createdAt),
-                  ),
-                  const SizedBox(height: 10),
-                  if (order.notes != null && order.notes!.isNotEmpty)
-                    _InfoRow(
-                      icon: Icons.note_rounded,
-                      label: 'Catatan',
-                      value: order.notes!,
-                    ),
-                  const SizedBox(height: 16),
-
-                  // Daftar produk
-                  Text('Produk yang Dipesan',
-                      style: SellerTheme.subHeadingStyle
-                          .copyWith(fontSize: 14)),
-                  const SizedBox(height: 10),
-                  ...order.items.map((item) => _OrderItemRow(item: item)),
-                  const Divider(height: 24),
-
-                  // Ringkasan harga
-                  _PriceRow(label: 'Subtotal', value: order.subtotal),
-                  const SizedBox(height: 6),
-                  _PriceRow(
-                      label: 'Ongkos Kirim', value: order.shippingCost),
-                  if (order.tax > 0) ...[
-                    const SizedBox(height: 6),
-                    _PriceRow(label: 'Pajak', value: order.tax),
-                  ],
-                  const SizedBox(height: 6),
-                  const Divider(height: 1),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Text('Total',
-                          style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF212121))),
-                      const Spacer(),
-                      Text(
-                        _formatRp(order.total),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: SellerTheme.primaryGreen,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Tombol ubah status
-                  if (nextStatuses.isNotEmpty) ...[
-                    Text('Ubah Status Pesanan',
-                        style: SellerTheme.subHeadingStyle
-                            .copyWith(fontSize: 14)),
-                    const SizedBox(height: 10),
-                    ...nextStatuses.map((s) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: _StatusButton(
-                            order: order,
-                            targetStatus: s,
-                          ),
-                        )),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static String _formatDate(DateTime dt) {
-    return DateFormat('EEEE, dd MMMM yyyy · HH:mm', 'id').format(dt);
-  }
-
-  static String _formatRp(double value) {
-    final s = value.toInt().toString();
-    final buf = StringBuffer('Rp ');
-    for (int i = 0; i < s.length; i++) {
-      if (i > 0 && (s.length - i) % 3 == 0) buf.write('.');
-      buf.write(s[i]);
-    }
-    return buf.toString();
-  }
-}
-
-class _StatusButton extends StatelessWidget {
-  final Order order;
-  final OrderStatus targetStatus;
-
-  const _StatusButton({required this.order, required this.targetStatus});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _statusColor(targetStatus);
-    final label = _statusLabel(targetStatus);
-
-    return SizedBox(
-      width: double.infinity,
-      height: 46,
-      child: ElevatedButton(
-        onPressed: () {
-          context.read<TransactionBloc>().add(
-                PerbaruiStatusTransaksi(
-                  orderId: order.id,
-                  sellerId: order.sellerId ?? 'mock-seller-001',
-                  status: targetStatus,
-                ),
-              );
-          Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Status diubah menjadi "$label"'),
-            backgroundColor: color,
-            behavior: SnackBarBehavior.floating,
-          ));
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(SellerTheme.borderRadius),
-          ),
-        ),
-        child: Text(label,
-            style: const TextStyle(
-                fontSize: 14, fontWeight: FontWeight.w600)),
-      ),
-    );
-  }
-
-  static String _statusLabel(OrderStatus status) {
-    switch (status) {
-      case OrderStatus.confirmed:
-        return 'Konfirmasi Pesanan';
-      case OrderStatus.processing:
-        return 'Tandai Sedang Diproses';
-      case OrderStatus.shipped:
-        return 'Tandai Telah Dikirim';
-      case OrderStatus.delivered:
-        return 'Tandai Pesanan Selesai';
-      case OrderStatus.cancelled:
-        return 'Batalkan Pesanan';
-      default:
-        return status.value;
-    }
-  }
-
-  static Color _statusColor(OrderStatus status) {
-    switch (status) {
-      case OrderStatus.confirmed:
-        return const Color(0xFF1565C0);
-      case OrderStatus.processing:
-        return const Color(0xFF6A1B9A);
-      case OrderStatus.shipped:
-        return const Color(0xFF00838F);
-      case OrderStatus.delivered:
-        return SellerTheme.primaryGreen;
-      case OrderStatus.cancelled:
-        return SellerTheme.errorRed;
-      default:
-        return const Color(0xFF757575);
-    }
-  }
-}
 
 // ─── Sub-widgets ──────────────────────────────────────────────────────────────
+
 
 class _SummaryCard extends StatelessWidget {
   final String label;
@@ -664,100 +423,6 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-class _OrderItemRow extends StatelessWidget {
-  final OrderItem item;
-  const _OrderItemRow({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.product.name,
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w500)),
-                Text(
-                  '${item.quantity}× Rp ${_fmt(item.unitPrice)}',
-                  style: SellerTheme.bodyStyle.copyWith(fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          Text('Rp ${_fmt(item.subtotal)}',
-              style: const TextStyle(
-                  fontSize: 13, fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
-
-  static String _fmt(double v) {
-    final s = v.toInt().toString();
-    final buf = StringBuffer();
-    for (int i = 0; i < s.length; i++) {
-      if (i > 0 && (s.length - i) % 3 == 0) buf.write('.');
-      buf.write(s[i]);
-    }
-    return buf.toString();
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _InfoRow(
-      {required this.icon, required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 16, color: const Color(0xFF9E9E9E)),
-        const SizedBox(width: 8),
-        Text('$label: ',
-            style: SellerTheme.bodyStyle
-                .copyWith(fontWeight: FontWeight.w600)),
-        Expanded(child: Text(value, style: SellerTheme.bodyStyle)),
-      ],
-    );
-  }
-}
-
-class _PriceRow extends StatelessWidget {
-  final String label;
-  final double value;
-
-  const _PriceRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(label, style: SellerTheme.bodyStyle),
-        const Spacer(),
-        Text('Rp ${_fmt(value)}', style: SellerTheme.bodyStyle),
-      ],
-    );
-  }
-
-  static String _fmt(double v) {
-    final s = v.toInt().toString();
-    final buf = StringBuffer();
-    for (int i = 0; i < s.length; i++) {
-      if (i > 0 && (s.length - i) % 3 == 0) buf.write('.');
-      buf.write(s[i]);
-    }
-    return buf.toString();
-  }
-}
 
 class _EmptyState extends StatelessWidget {
   final OrderStatus? filterStatus;
