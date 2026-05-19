@@ -46,6 +46,9 @@ dependencies:
   path_provider: ^2.1.5
   path: ^1.9.0
   uuid: ^4.5.1
+  # Local offline database
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
 
 dev_dependencies:
   # Seller branch: updated version; master had ^2.4.6

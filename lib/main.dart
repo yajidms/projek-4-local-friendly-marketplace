@@ -14,21 +14,36 @@ import 'app/presentation/features/seller/bloc/transaction_bloc.dart';
 import 'app/presentation/features/seller/views/seller_dashboard_view.dart';
 import 'app/presentation/features/seller/views/seller_registration_view.dart';
 import 'app/theme/seller_theme.dart';
+import 'data/local/hive_init.dart';
+import 'data/local/repositories/hive_product_repository.dart';
+import 'domain/repositories/product_repository.dart';
 import 'testing/mock_repositories.dart';
 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Inisialisasi locale Bahasa Indonesia untuk DateFormat
+
+  // 1. Inisialisasi locale Bahasa Indonesia untuk DateFormat
   await initializeDateFormatting('id', null);
-  runApp(const PaDeTestApp());
+
+  // 2. Inisialisasi Hive (register adapter)
+  await initHive();
+
+  // 3. Buka Hive box & siapkan ProductRepository (seed otomatis jika kosong)
+  final ProductRepository productRepo = await HiveProductRepository.open();
+
+  // 4. Jalankan app dengan repo yang sudah siap
+  runApp(PaDeTestApp(productRepository: productRepo));
 }
 
 /// ════════════════════════════════════════════════════════
 /// APP TESTING — wraps BLoC providers + navigator
 /// ════════════════════════════════════════════════════════
 class PaDeTestApp extends StatelessWidget {
-  const PaDeTestApp({super.key});
+  /// Repository produk yang sudah disiapkan (Hive)
+  final ProductRepository productRepository;
+
+  const PaDeTestApp({super.key, required this.productRepository});
 
   @override
   Widget build(BuildContext context) {
@@ -40,10 +55,10 @@ class PaDeTestApp extends StatelessWidget {
             sellerRepository: MockSellerRepository(),
           ),
         ),
-        // Provider ProductBloc dengan mock repository + langsung load produk
+        // Provider ProductBloc dengan HIVE repository (data persisten)
         BlocProvider<ProductBloc>(
           create: (_) => ProductBloc(
-            productRepository: MockProductRepository(),
+            productRepository: productRepository,
           )..add(MuatProdukPenjual(sellerId: 'mock-seller-001')),
         ),
         // Provider TransactionBloc dengan mock repository + langsung load
@@ -152,28 +167,28 @@ class _TestingLaunchPad extends StatelessWidget {
               ),
               const SizedBox(height: 36),
 
-              // Info data mock
+              // Info storage Hive
               Container(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: SellerTheme.syncPending.withValues(alpha: 0.08),
+                  color: SellerTheme.primaryGreen.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                       color:
-                          SellerTheme.syncPending.withValues(alpha: 0.3)),
+                          SellerTheme.primaryGreen.withValues(alpha: 0.3)),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.info_outline_rounded,
-                        size: 16, color: SellerTheme.syncPending),
+                    Icon(Icons.storage_rounded,
+                        size: 16, color: SellerTheme.primaryGreen),
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Menggunakan data mock (tidak butuh internet / server)',
+                        'Data produk tersimpan lokal (Hive). Transaksi menggunakan data mock.',
                         style: TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF795548)),
+                            color: Color(0xFF2E7D32)),
                       ),
                     ),
                   ],
