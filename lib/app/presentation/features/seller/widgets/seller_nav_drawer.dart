@@ -198,9 +198,11 @@ class _DrawerHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DrawerHeader(
-      margin: EdgeInsets.zero,
-      padding: EdgeInsets.zero,
+    // Gunakan Container biasa (bukan DrawerHeader) agar gradient penuh selebar drawer
+    final topPad = MediaQuery.of(context).padding.top;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(20, topPad + 20, 20, 20),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [SellerTheme.primaryGreenDark, SellerTheme.primaryGreen],
@@ -208,40 +210,38 @@ class _DrawerHeader extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.store_rounded,
-                  color: Colors.white, size: 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
             ),
-            const SizedBox(height: 12),
-            Text(
-              shopName,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'PaDe Seller',
-              style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.75), fontSize: 12),
-            ),
-          ],
-        ),
+            child: const Icon(Icons.store_rounded,
+                color: Colors.white, size: 28),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            shopName,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'PaDe Seller',
+            style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.75), fontSize: 12),
+          ),
+          const SizedBox(height: 4),
+        ],
       ),
     );
   }

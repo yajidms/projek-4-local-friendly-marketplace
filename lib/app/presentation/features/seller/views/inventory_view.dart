@@ -74,28 +74,31 @@ class _InventoryViewState extends State<InventoryView> {
         Container(
           color: Colors.white,
           padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              _SummaryChip(
-                icon: Icons.inventory_2_rounded,
-                label: '${products.length} Produk',
-                color: SellerTheme.primaryGreen,
-              ),
-              const SizedBox(width: 10),
-              if (lowStockCount > 0)
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
                 _SummaryChip(
-                  icon: Icons.warning_amber_rounded,
-                  label: '$lowStockCount Stok Rendah',
-                  color: SellerTheme.syncPending,
+                  icon: Icons.inventory_2_rounded,
+                  label: '${products.length} Produk',
+                  color: SellerTheme.primaryGreen,
                 ),
-              if (lowStockCount > 0) const SizedBox(width: 10),
-              if (outOfStockCount > 0)
-                _SummaryChip(
-                  icon: Icons.remove_shopping_cart_rounded,
-                  label: '$outOfStockCount Stok Habis',
-                  color: SellerTheme.errorRed,
-                ),
-            ],
+                const SizedBox(width: 10),
+                if (lowStockCount > 0)
+                  _SummaryChip(
+                    icon: Icons.warning_amber_rounded,
+                    label: '$lowStockCount Stok Rendah',
+                    color: SellerTheme.syncPending,
+                  ),
+                if (lowStockCount > 0) const SizedBox(width: 10),
+                if (outOfStockCount > 0)
+                  _SummaryChip(
+                    icon: Icons.remove_shopping_cart_rounded,
+                    label: '$outOfStockCount Stok Habis',
+                    color: SellerTheme.errorRed,
+                  ),
+              ],
+            ),
           ),
         ),
         const Divider(height: 1),

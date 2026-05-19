@@ -132,12 +132,24 @@ class _ProductListViewState extends State<ProductListView> {
         Expanded(
           child: filtered.isEmpty
               ? _EmptyState(query: _query)
-              : ListView.separated(
+                  : ListView.separated(
                   padding: const EdgeInsets.all(12),
                   itemCount: filtered.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (ctx, i) =>
-                      _ProductCard(product: filtered[i]),
+                  itemBuilder: (ctx, i) {
+                    final bloc = ctx.read<ProductBloc>();
+                    return _ProductCard(
+                      product: filtered[i],
+                      onEdit: (p) => _navigateToForm(context, p),
+                      onDetail: (p) => _navigateToDetail(context, p),
+                      onDelete: (productId, sellerId) {
+                        bloc.add(HapusProduk(
+                          productId: productId,
+                          sellerId: sellerId,
+                        ));
+                      },
+                    );
+                  },
                 ),
         ),
 
@@ -183,13 +195,40 @@ class _ProductListViewState extends State<ProductListView> {
       transitionDuration: SellerTheme.pageTransitionDuration,
     ));
   }
+
+  void _navigateToDetail(BuildContext context, Product product) {
+    final bloc = context.read<ProductBloc>();
+    Navigator.of(context).push(PageRouteBuilder<void>(
+      pageBuilder: (_, a, __) => BlocProvider.value(
+        value: bloc,
+        child: ProductDetailView(product: product),
+      ),
+      transitionsBuilder: (_, a, __, child) => SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(1, 0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: a, curve: Curves.easeInOut)),
+        child: child,
+      ),
+      transitionDuration: SellerTheme.pageTransitionDuration,
+    ));
+  }
 }
 
 // ─── Product Card ──────────────────────────────────────────────────────────────
 
 class _ProductCard extends StatelessWidget {
   final Product product;
-  const _ProductCard({required this.product});
+  final void Function(Product) onEdit;
+  final void Function(Product) onDetail;
+  final void Function(String productId, String sellerId) onDelete;
+
+  const _ProductCard({
+    required this.product,
+    required this.onEdit,
+    required this.onDetail,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -207,10 +246,7 @@ class _ProductCard extends StatelessWidget {
       ),
       confirmDismiss: (_) => _konfirmasiHapus(context),
       onDismissed: (_) {
-        context.read<ProductBloc>().add(
-              HapusProduk(
-                  productId: product.id, sellerId: product.sellerId),
-            );
+        onDelete(product.id, product.sellerId);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${product.name} dihapus'),
@@ -223,7 +259,7 @@ class _ProductCard extends StatelessWidget {
         margin: EdgeInsets.zero,
         child: InkWell(
           borderRadius: BorderRadius.circular(SellerTheme.borderRadius),
-          onTap: () => _navigateToDetail(context, product),
+          onTap: () => onDetail(product),
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
@@ -275,7 +311,7 @@ class _ProductCard extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.edit_rounded,
                       color: Color(0xFF9E9E9E), size: 20),
-                  onPressed: () => _navigateToForm(context, product),
+                  onPressed: () => onEdit(product),
                   tooltip: 'Edit produk',
                 ),
               ],
@@ -305,44 +341,6 @@ class _ProductCard extends StatelessWidget {
           ],
         ),
       );
-
-  // Method ini mengarahkan ke ProductDetailView
-  void _navigateToDetail(BuildContext context, Product product) {
-    final bloc = context.read<ProductBloc>();
-    Navigator.of(context).push(PageRouteBuilder<void>(
-      pageBuilder: (_, a, __) => BlocProvider.value(
-        value: bloc,
-        child: ProductDetailView(product: product),
-      ),
-      transitionsBuilder: (_, a, __, child) => SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(1, 0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(parent: a, curve: Curves.easeInOut)),
-        child: child,
-      ),
-      transitionDuration: SellerTheme.pageTransitionDuration,
-    ));
-  }
-
-  // Method ini hanya tersedia di dalam _ProductCard — navigasi langsung ke form edit
-  void _navigateToForm(BuildContext context, Product product) {
-    final bloc = context.read<ProductBloc>();
-    Navigator.of(context).push(PageRouteBuilder<void>(
-      pageBuilder: (_, a, __) => BlocProvider.value(
-        value: bloc,
-        child: ProductFormView(existingProduct: product),
-      ),
-      transitionsBuilder: (_, a, __, child) => SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(1, 0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(parent: a, curve: Curves.easeInOut)),
-        child: child,
-      ),
-      transitionDuration: SellerTheme.pageTransitionDuration,
-    ));
-  }
 
   static IconData _categoryIcon(String category) {
     switch (category.toLowerCase()) {
