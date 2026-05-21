@@ -13,15 +13,22 @@ import 'package:flutter/material.dart';
 import '../../../../theme/seller_theme.dart';
 
 class SellerSettingsView extends StatefulWidget {
-  const SellerSettingsView({super.key});
+  final String initialShopName;
+  final ValueChanged<String>? onShopNameChanged;
+
+  const SellerSettingsView({
+    super.key,
+    this.initialShopName = 'PaDe Seller',
+    this.onShopNameChanged,
+  });
 
   @override
   State<SellerSettingsView> createState() => _SellerSettingsViewState();
 }
 
 class _SellerSettingsViewState extends State<SellerSettingsView> {
-  // ── State lokal pengaturan ────────────────────────────────────────────────
-  final _namaTokoCtrl = TextEditingController(text: 'PaDe Seller');
+  // ── State lokal pengaturan ───────────────────────────────────────────────
+  late final TextEditingController _namaTokoCtrl;
   final _deskripsiCtrl = TextEditingController(
       text: 'Toko lokal terpercaya dengan produk segar dan berkualitas.');
   String _kategoriUtama = 'Sembako';
@@ -43,6 +50,12 @@ class _SellerSettingsViewState extends State<SellerSettingsView> {
 
   final List<String> _etalase = ['Sembako', 'Minuman', 'Makanan Ringan'];
   final _etalaseCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _namaTokoCtrl = TextEditingController(text: widget.initialShopName);
+  }
 
   @override
   void dispose() {
@@ -217,6 +230,8 @@ class _SellerSettingsViewState extends State<SellerSettingsView> {
   }
 
   void _simpan(BuildContext context) {
+    // Propagate nama toko ke dashboard parent
+    widget.onShopNameChanged?.call(_namaTokoCtrl.text);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Row(

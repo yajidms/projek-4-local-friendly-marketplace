@@ -51,9 +51,16 @@ class _DashboardBody extends StatefulWidget {
 
 class _DashboardBodyState extends State<_DashboardBody> {
   SellerNavItem _activeItem = SellerNavItem.beranda;
+  String _shopName = 'PaDe Seller'; // Nama toko — bisa diubah dari Pengaturan
 
   void _onNavItemSelected(SellerNavItem item) {
     setState(() => _activeItem = item);
+  }
+
+  void _onShopNameChanged(String name) {
+    if (name.trim().isNotEmpty) {
+      setState(() => _shopName = name.trim());
+    }
   }
 
   @override
@@ -148,7 +155,7 @@ class _DashboardBodyState extends State<_DashboardBody> {
       drawer: SellerNavDrawer(
         selectedItem: _activeItem,
         onItemSelected: _onNavItemSelected,
-        shopName: 'PaDe Seller',
+        shopName: _shopName,
       ),
       body: AnimatedSwitcher(
         duration: SellerTheme.animationDuration,
@@ -162,7 +169,7 @@ class _DashboardBodyState extends State<_DashboardBody> {
   Widget _buildContent(SellerNavItem item) {
     switch (item) {
       case SellerNavItem.beranda:
-        return const _BerandaContent(key: ValueKey('beranda'));
+        return _BerandaContent(key: const ValueKey('beranda'), shopName: _shopName);
       case SellerNavItem.penjualan:
         return const TransactionListView(key: ValueKey('penjualan'));
       case SellerNavItem.inventaris:
@@ -177,7 +184,11 @@ class _DashboardBodyState extends State<_DashboardBody> {
             label: 'Statistik',
             icon: Icons.bar_chart_rounded);
       case SellerNavItem.pengaturan:
-        return const SellerSettingsView(key: ValueKey('pengaturan'));
+        return SellerSettingsView(
+          key: const ValueKey('pengaturan'),
+          initialShopName: _shopName,
+          onShopNameChanged: _onShopNameChanged,
+        );
     }
   }
 }
@@ -185,7 +196,8 @@ class _DashboardBodyState extends State<_DashboardBody> {
 // ─── Beranda Content ─────────────────────────────────────────────────────────
 
 class _BerandaContent extends StatelessWidget {
-  const _BerandaContent({super.key});
+  final String shopName;
+  const _BerandaContent({super.key, required this.shopName});
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +206,7 @@ class _BerandaContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Hero Banner ───────────────────────────────────────────────────
-          _HeroBanner(),
+          _HeroBanner(shopName: shopName),
           const SizedBox(height: 20),
 
           Padding(
@@ -259,6 +271,9 @@ class _SectionTitle extends StatelessWidget {
 // ─── Hero Banner ──────────────────────────────────────────────────────────────
 
 class _HeroBanner extends StatelessWidget {
+  final String shopName;
+  const _HeroBanner({required this.shopName});
+
   @override
   Widget build(BuildContext context) {
     final hour = TimeOfDay.now().hour;
@@ -316,8 +331,8 @@ class _HeroBanner extends StatelessWidget {
                         color: Colors.white.withValues(alpha: 0.75),
                         fontSize: 13)),
                 const SizedBox(height: 4),
-                const Text('PaDe Seller',
-                    style: TextStyle(
+                Text(shopName,
+                    style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
