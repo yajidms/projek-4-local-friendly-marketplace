@@ -1,9 +1,7 @@
 // File: lib/app/presentation/features/seller/views/seller_dashboard_view.dart
 //
 // SRS Ch 3.5.2 — PaDe Seller Dashboard
-// Header: Hijau dengan teks "PaDe Seller".
-// Drawer: SellerNavDrawer dengan 5 item + sub-menu Katalog.
-// Konten: 3 kartu placeholder (DashboardStatCard) dengan background abu-abu.
+// Design: Northern Lights palette — dark header + neon green accents
 // NFR-OPR-01: Semua tombol/ikon ≥ 48×48 dp.
 // NFR-ATR-03: Transisi konten ≤ 300ms.
 // NFR-UND-02: Semua label Bahasa Indonesia.
@@ -15,22 +13,21 @@ import '../../../../theme/seller_theme.dart';
 import '../../../../../domain/entities/index.dart';
 import '../bloc/product_bloc.dart';
 import '../bloc/transaction_bloc.dart';
-import '../widgets/dashboard_stat_card.dart';
 import '../widgets/seller_nav_drawer.dart';
 import 'inventory_view.dart';
 import 'product_form_view.dart';
 import 'product_list_view.dart';
+import 'seller_settings_view.dart';
 import 'transaction_list_view.dart';
 
 class SellerDashboardView extends StatelessWidget {
   const SellerDashboardView({super.key});
 
-  /// NFR-ATR-03: Transisi fade ≤ 300ms.
   static Route<void> route() => PageRouteBuilder<void>(
         pageBuilder: (_, a, __) => const SellerDashboardView(),
         transitionsBuilder: (_, a, __, child) => FadeTransition(
-          opacity: CurvedAnimation(
-              parent: a, curve: SellerTheme.animationCurve),
+          opacity:
+              CurvedAnimation(parent: a, curve: SellerTheme.animationCurve),
           child: child,
         ),
         transitionDuration: SellerTheme.pageTransitionDuration,
@@ -44,8 +41,6 @@ class SellerDashboardView extends StatelessWidget {
     );
   }
 }
-
-// ─── State: nav item yang dipilih ─────────────────────────────────────────────
 
 class _DashboardBody extends StatefulWidget {
   const _DashboardBody();
@@ -64,11 +59,11 @@ class _DashboardBodyState extends State<_DashboardBody> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F4),
-
-      // ── AppBar Hijau "PaDe Seller" ─────────────────────────────────────────
+      backgroundColor: const Color(0xFFF0F7F0),
       appBar: AppBar(
-        // "hamburger" icon — NFR-OPR-01: default IconButton sudah 48×48
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: SellerTheme.headerGradient),
+        ),
         leading: Builder(
           builder: (ctx) => IconButton(
             icon: const Icon(Icons.menu_rounded),
@@ -76,55 +71,86 @@ class _DashboardBodyState extends State<_DashboardBody> {
             onPressed: () => Scaffold.of(ctx).openDrawer(),
           ),
         ),
-        title: const Text('PaDe Seller'),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: SellerTheme.neonGreen.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                    color: SellerTheme.neonGreen.withValues(alpha: 0.4)),
+              ),
+              child: const Text(
+                'PaDe',
+                style: TextStyle(
+                    color: SellerTheme.neonGreen,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 13,
+                    letterSpacing: 1),
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text('Seller',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18)),
+          ],
+        ),
         actions: [
-          // Tombol sinkronisasi — NFR-OPR-01: IconButton ≥ 48dp
           BlocBuilder<ProductBloc, ProductState>(
             builder: (ctx, state) {
               final isSyncing = state is ProductSedangSinkron;
               return IconButton(
                 icon: isSyncing
                     ? const SizedBox(
-                        width: 22,
-                        height: 22,
+                        width: 20,
+                        height: 20,
                         child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: Colors.white,
+                          strokeWidth: 2,
+                          color: SellerTheme.neonGreen,
                         ),
                       )
-                    : const Icon(Icons.sync_rounded),
+                    : const Icon(Icons.sync_rounded, color: Colors.white),
                 tooltip: 'Sinkronkan data',
-                // Sinkronkan produk penjual (gunakan ID dummy; ganti dengan
-                // ID asli dari sesi autentikasi)
                 onPressed: isSyncing
                     ? null
                     : () => ctx.read<ProductBloc>().add(
-                          // TODO(auth): Ganti dengan ID dari sesi autentikasi
                           SinkronkanProduk(sellerId: 'mock-seller-001'),
                         ),
               );
             },
           ),
-          // Notifikasi — placeholder
           IconButton(
-            icon: const Icon(Icons.notifications_none_rounded),
+            icon: Stack(
+              children: [
+                const Icon(Icons.notifications_outlined, color: Colors.white),
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: SellerTheme.neonGreen,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             tooltip: 'Notifikasi',
             onPressed: () {},
           ),
         ],
       ),
-
-      // ── Drawer Navigasi ────────────────────────────────────────────────────
       drawer: SellerNavDrawer(
         selectedItem: _activeItem,
         onItemSelected: _onNavItemSelected,
-        // TODO(auth): Ganti dengan nama toko dari sesi autentikasi
         shopName: 'PaDe Seller',
       ),
-
-      // ── Konten Utama ───────────────────────────────────────────────────────
       body: AnimatedSwitcher(
-        // NFR-ATR-03: ≤ 300ms
         duration: SellerTheme.animationDuration,
         switchInCurve: SellerTheme.animationCurve,
         switchOutCurve: SellerTheme.animationCurve,
@@ -151,15 +177,12 @@ class _DashboardBodyState extends State<_DashboardBody> {
             label: 'Statistik',
             icon: Icons.bar_chart_rounded);
       case SellerNavItem.pengaturan:
-        return _PlaceholderContent(
-            key: const ValueKey('pengaturan'),
-            label: 'Pengaturan',
-            icon: Icons.settings_rounded);
+        return const SellerSettingsView(key: ValueKey('pengaturan'));
     }
   }
 }
 
-// ─── Konten Beranda (3 kartu placeholder) ─────────────────────────────────────
+// ─── Beranda Content ─────────────────────────────────────────────────────────
 
 class _BerandaContent extends StatelessWidget {
   const _BerandaContent({super.key});
@@ -167,94 +190,341 @@ class _BerandaContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(SellerTheme.paddingPage),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _GreetingBanner(),
+          // ── Hero Banner ───────────────────────────────────────────────────
+          _HeroBanner(),
           const SizedBox(height: 20),
 
-          Text('Ringkasan Toko', style: SellerTheme.subHeadingStyle),
-          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Section: Ringkasan
+                _SectionTitle(title: 'Ringkasan Toko', icon: Icons.insights_rounded),
+                const SizedBox(height: 12),
+                _StatGrid(),
+                const SizedBox(height: 24),
 
-          // Kartu 1 — Total Produk
-          BlocBuilder<ProductBloc, ProductState>(
-            builder: (_, state) {
-              final total = state is ProductTertampil ? state.products.length : 0;
-              final belumSinkron = state is ProductTertampil ? state.jumlahBelumSinkron : 0;
-              return DashboardStatCard(
-                title: 'Total Produk',
-                value: '$total',
-                subtitle: belumSinkron > 0 ? '$belumSinkron belum sinkron' : 'Semua tersinkron ✓',
-                icon: Icons.inventory_2_rounded,
-                accentColor: SellerTheme.primaryGreen,
-              );
-            },
+                // Section: Aksi Cepat
+                _SectionTitle(title: 'Aksi Cepat', icon: Icons.flash_on_rounded),
+                const SizedBox(height: 12),
+                _QuickActions(),
+                const SizedBox(height: 24),
+
+                // Section: Pesanan Terbaru
+                _SectionTitle(title: 'Aktivitas Terkini', icon: Icons.history_rounded),
+                const SizedBox(height: 12),
+                _RecentActivity(),
+                const SizedBox(height: 24),
+
+                // Sync Info
+                _SyncInfoBanner(),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-
-          // Kartu 2 — Penjualan Hari Ini (dari TransactionBloc)
-          BlocBuilder<TransactionBloc, TransactionState>(
-            builder: (_, state) {
-              double salesToday = 0;
-              int countToday = 0;
-              if (state is TransaksiTertampil) {
-                final today = DateTime.now();
-                final todayOrders = state.semuaTransaksi.where((o) {
-                  final sameDay = o.createdAt.year == today.year &&
-                      o.createdAt.month == today.month &&
-                      o.createdAt.day == today.day;
-                  return sameDay && o.status == OrderStatus.delivered;
-                });
-                salesToday = todayOrders.fold(0.0, (sum, o) => sum + o.total);
-                countToday = todayOrders.length;
-              }
-              return DashboardStatCard(
-                title: 'Penjualan Hari Ini',
-                value: salesToday > 0 ? _fmtRp(salesToday) : 'Rp 0',
-                subtitle: '$countToday transaksi selesai',
-                icon: Icons.shopping_bag_rounded,
-                accentColor: const Color(0xFF1565C0),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-
-          // Kartu 3 — Pesanan Menunggu (dari TransactionBloc)
-          BlocBuilder<TransactionBloc, TransactionState>(
-            builder: (_, state) {
-              final pending = state is TransaksiTertampil ? state.jumlahMenunggu : 0;
-              return DashboardStatCard(
-                title: 'Pesanan Menunggu',
-                value: '$pending',
-                subtitle: pending > 0 ? 'Segera konfirmasi!' : 'Semua pesanan terproses ✓',
-                icon: Icons.pending_actions_rounded,
-                accentColor: const Color(0xFFE65100),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-
-          // Kartu 4 — Rating Toko (placeholder)
-          DashboardStatCard(
-            title: 'Rating Toko',
-            value: '—',
-            subtitle: 'Belum ada ulasan',
-            icon: Icons.star_rounded,
-            accentColor: const Color(0xFFF57F17),
-          ),
-          const SizedBox(height: 24),
-
-          // Quick Actions
-          Text('Aksi Cepat', style: SellerTheme.subHeadingStyle),
-          const SizedBox(height: 12),
-          _QuickActions(),
-          const SizedBox(height: 20),
-
-          _SyncInfoBanner(),
-          const SizedBox(height: 16),
         ],
       ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  const _SectionTitle({required this.title, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: SellerTheme.neonGreen.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 16, color: SellerTheme.darkTeal),
+        ),
+        const SizedBox(width: 10),
+        Text(title, style: SellerTheme.subHeadingStyle),
+      ],
+    );
+  }
+}
+
+// ─── Hero Banner ──────────────────────────────────────────────────────────────
+
+class _HeroBanner extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final hour = TimeOfDay.now().hour;
+    final greeting = hour < 11
+        ? 'Selamat Pagi ☀️'
+        : hour < 15
+            ? 'Selamat Siang 🌤️'
+            : hour < 19
+                ? 'Selamat Sore 🌅'
+                : 'Selamat Malam 🌙';
+
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: SellerTheme.headerGradient,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
+      ),
+      child: Stack(
+        children: [
+          // Decorative circles
+          Positioned(
+            right: -30,
+            top: -30,
+            child: Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: SellerTheme.neonGreen.withValues(alpha: 0.06),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 40,
+            bottom: -20,
+            child: Container(
+              width: 90,
+              height: 90,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: SellerTheme.tealGreen.withValues(alpha: 0.1),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(greeting,
+                    style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.75),
+                        fontSize: 13)),
+                const SizedBox(height: 4),
+                const Text('PaDe Seller',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5)),
+                const SizedBox(height: 16),
+                BlocBuilder<ProductBloc, ProductState>(
+                  builder: (_, state) {
+                    final total =
+                        state is ProductTertampil ? state.products.length : 0;
+                    return Row(
+                      children: [
+                        _HeroBadge(
+                          value: '$total',
+                          label: 'Produk',
+                          icon: Icons.inventory_2_rounded,
+                        ),
+                        const SizedBox(width: 12),
+                        BlocBuilder<TransactionBloc, TransactionState>(
+                          builder: (_, txState) {
+                            final pending = txState is TransaksiTertampil
+                                ? txState.jumlahMenunggu
+                                : 0;
+                            return _HeroBadge(
+                              value: '$pending',
+                              label: 'Menunggu',
+                              icon: Icons.pending_actions_rounded,
+                              highlight: pending > 0,
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroBadge extends StatelessWidget {
+  final String value;
+  final String label;
+  final IconData icon;
+  final bool highlight;
+
+  const _HeroBadge({
+    required this.value,
+    required this.label,
+    required this.icon,
+    this.highlight = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: highlight
+            ? SellerTheme.neonGreen.withValues(alpha: 0.2)
+            : Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: highlight
+              ? SellerTheme.neonGreen.withValues(alpha: 0.5)
+              : Colors.white.withValues(alpha: 0.15),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon,
+              size: 16,
+              color:
+                  highlight ? SellerTheme.neonGreen : Colors.white70),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(value,
+                  style: TextStyle(
+                      color: highlight ? SellerTheme.neonGreen : Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16)),
+              Text(label,
+                  style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.65),
+                      fontSize: 11)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Stat Grid (2×2) ─────────────────────────────────────────────────────────
+
+class _StatGrid extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProductBloc, ProductState>(
+      builder: (_, pState) {
+        final totalProduk =
+            pState is ProductTertampil ? pState.products.length : 0;
+        final belumSinkron =
+            pState is ProductTertampil ? pState.jumlahBelumSinkron : 0;
+        return BlocBuilder<TransactionBloc, TransactionState>(
+          builder: (_, tState) {
+            double salesToday = 0;
+            int countToday = 0;
+            int pending = 0;
+            if (tState is TransaksiTertampil) {
+              final today = DateTime.now();
+              final todayOrders = tState.semuaTransaksi.where((o) {
+                return o.createdAt.year == today.year &&
+                    o.createdAt.month == today.month &&
+                    o.createdAt.day == today.day &&
+                    o.status == OrderStatus.delivered;
+              });
+              salesToday =
+                  todayOrders.fold(0.0, (s, o) => s + o.total);
+              countToday = todayOrders.length;
+              pending = tState.jumlahMenunggu;
+            }
+
+            return Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _StatCard(
+                        title: 'Total Produk',
+                        value: '$totalProduk',
+                        subtitle: belumSinkron > 0
+                            ? '$belumSinkron belum sinkron'
+                            : 'Semua tersinkron ✓',
+                        icon: Icons.inventory_2_rounded,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF072623), Color(0xFF0D4A3A)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        accentColor: SellerTheme.neonGreen,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _StatCard(
+                        title: 'Penjualan Hari Ini',
+                        value: salesToday > 0 ? _fmtRp(salesToday) : 'Rp 0',
+                        subtitle: '$countToday transaksi selesai',
+                        icon: Icons.shopping_bag_rounded,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF1A237E), Color(0xFF283593)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        accentColor: const Color(0xFF82B1FF),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _StatCard(
+                        title: 'Pesanan Menunggu',
+                        value: '$pending',
+                        subtitle: pending > 0
+                            ? 'Segera proses!'
+                            : 'Semua terproses ✓',
+                        icon: Icons.pending_actions_rounded,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF4A1000), Color(0xFF7B1F00)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        accentColor: const Color(0xFFFF6E40),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _StatCard(
+                        title: 'Rating Toko',
+                        value: '—',
+                        subtitle: 'Belum ada ulasan',
+                        icon: Icons.star_rounded,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF3E1D00), Color(0xFF5D2E00)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        accentColor: const Color(0xFFFFD740),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -270,56 +540,90 @@ class _BerandaContent extends StatelessWidget {
   }
 }
 
-// ─── Banner sambutan ──────────────────────────────────────────────────────────
+class _StatCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final String subtitle;
+  final IconData icon;
+  final LinearGradient gradient;
+  final Color accentColor;
 
-class _GreetingBanner extends StatelessWidget {
+  const _StatCard({
+    required this.title,
+    required this.value,
+    required this.subtitle,
+    required this.icon,
+    required this.gradient,
+    required this.accentColor,
+  });
+
   @override
   Widget build(BuildContext context) {
-    final hour = TimeOfDay.now().hour;
-    final greeting = hour < 11
-        ? 'Selamat Pagi'
-        : hour < 15
-            ? 'Selamat Siang'
-            : hour < 19
-                ? 'Selamat Sore'
-                : 'Selamat Malam';
-
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            SellerTheme.primaryGreen,
-            SellerTheme.primaryGreenLight,
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
+        gradient: gradient,
         borderRadius: BorderRadius.circular(SellerTheme.borderRadius),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.store_rounded, color: Colors.white, size: 36),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  greeting,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                // TODO(auth): Ganti dengan nama toko dari sesi autentikasi
-                const Text('PaDe Seller',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold)),
-              ],
+                child: Icon(icon, color: accentColor, size: 18),
+              ),
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: accentColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            value,
+            style: TextStyle(
+              color: accentColor,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.5,
             ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.55),
+              fontSize: 10,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -332,121 +636,296 @@ class _GreetingBanner extends StatelessWidget {
 class _QuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final actions = [
+      _QAction(
+        icon: Icons.add_box_rounded,
+        label: 'Tambah\nProduk',
+        gradient: const LinearGradient(
+            colors: [SellerTheme.darkTeal, Color(0xFF0D4A3A)]),
+        accentColor: SellerTheme.neonGreen,
+        onTap: () {
+          final bloc = context.read<ProductBloc>();
+          Navigator.of(context).push(PageRouteBuilder<void>(
+            pageBuilder: (_, a, __) => BlocProvider.value(
+              value: bloc,
+              child: const ProductFormView(),
+            ),
+            transitionsBuilder: (_, a, __, child) => SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 1),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(parent: a, curve: Curves.easeInOut)),
+              child: child,
+            ),
+            transitionDuration: SellerTheme.pageTransitionDuration,
+          ));
+        },
+      ),
+      _QAction(
+        icon: Icons.receipt_long_rounded,
+        label: 'Transaksi',
+        gradient: const LinearGradient(
+            colors: [Color(0xFF1A237E), Color(0xFF283593)]),
+        accentColor: const Color(0xFF82B1FF),
+        onTap: () {
+          final state =
+              context.findAncestorStateOfType<_DashboardBodyState>();
+          state?._onNavItemSelected(SellerNavItem.penjualan);
+        },
+      ),
+      _QAction(
+        icon: Icons.warehouse_rounded,
+        label: 'Inventaris',
+        gradient: const LinearGradient(
+            colors: [Color(0xFF3E1D00), Color(0xFF5D2E00)]),
+        accentColor: const Color(0xFFFFD740),
+        onTap: () {
+          final state =
+              context.findAncestorStateOfType<_DashboardBodyState>();
+          state?._onNavItemSelected(SellerNavItem.inventaris);
+        },
+      ),
+      _QAction(
+        icon: Icons.list_alt_rounded,
+        label: 'Katalog',
+        gradient: const LinearGradient(
+            colors: [Color(0xFF4A0E4E), Color(0xFF6A1B9A)]),
+        accentColor: const Color(0xFFCE93D8),
+        onTap: () {
+          final state =
+              context.findAncestorStateOfType<_DashboardBodyState>();
+          state?._onNavItemSelected(SellerNavItem.daftarProduk);
+        },
+      ),
+    ];
+
     return Row(
-      children: [
-        _QuickActionBtn(
-          icon: Icons.add_box_rounded,
-          label: 'Tambah\nProduk',
-          color: SellerTheme.primaryGreen,
-          onTap: () {
-            final bloc = context.read<ProductBloc>();
-            Navigator.of(context).push(PageRouteBuilder<void>(
-              pageBuilder: (_, a, __) => BlocProvider.value(
-                value: bloc,
-                child: const ProductFormView(),
-              ),
-              transitionsBuilder: (_, a, __, child) => SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 1),
-                  end: Offset.zero,
-                ).animate(CurvedAnimation(parent: a, curve: Curves.easeInOut)),
-                child: child,
-              ),
-              transitionDuration: SellerTheme.pageTransitionDuration,
-            ));
-          },
-        ),
-        const SizedBox(width: 10),
-        _QuickActionBtn(
-          icon: Icons.receipt_long_rounded,
-          label: 'Lihat\nTransaksi',
-          color: const Color(0xFF1565C0),
-          onTap: () {
-            // Navigate to penjualan tab — find _DashboardBodyState above
-            final state = context.findAncestorStateOfType<_DashboardBodyState>();
-            state?._onNavItemSelected(SellerNavItem.penjualan);
-          },
-        ),
-        const SizedBox(width: 10),
-        _QuickActionBtn(
-          icon: Icons.warehouse_rounded,
-          label: 'Inventaris',
-          color: const Color(0xFF6A1B9A),
-          onTap: () {
-            final state = context.findAncestorStateOfType<_DashboardBodyState>();
-            state?._onNavItemSelected(SellerNavItem.inventaris);
-          },
-        ),
-        const SizedBox(width: 10),
-        _QuickActionBtn(
-          icon: Icons.list_alt_rounded,
-          label: 'Katalog',
-          color: const Color(0xFF00838F),
-          onTap: () {
-            final state = context.findAncestorStateOfType<_DashboardBodyState>();
-            state?._onNavItemSelected(SellerNavItem.daftarProduk);
-          },
-        ),
-      ],
+      children: actions
+          .map((a) => Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                      right: a == actions.last ? 0 : 10),
+                  child: _QuickActionBtn(action: a),
+                ),
+              ))
+          .toList(),
     );
   }
 }
 
-class _QuickActionBtn extends StatelessWidget {
+class _QAction {
   final IconData icon;
   final String label;
-  final Color color;
+  final LinearGradient gradient;
+  final Color accentColor;
   final VoidCallback onTap;
-
-  const _QuickActionBtn({
+  const _QAction({
     required this.icon,
     required this.label,
-    required this.color,
+    required this.gradient,
+    required this.accentColor,
     required this.onTap,
   });
+}
+
+class _QuickActionBtn extends StatelessWidget {
+  final _QAction action;
+  const _QuickActionBtn({required this.action});
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(SellerTheme.borderRadius),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 22),
+    return GestureDetector(
+      onTap: action.onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        decoration: BoxDecoration(
+          gradient: action.gradient,
+          borderRadius: BorderRadius.circular(SellerTheme.borderRadius),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(action.icon, color: action.accentColor, size: 26),
             const SizedBox(height: 8),
             Text(
-              label,
+              action.label,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: Colors.white.withValues(alpha: 0.9),
+                height: 1.3,
+              ),
             ),
-          ]),
+          ],
         ),
       ),
     );
   }
 }
 
-// ─── Banner info sinkronisasi ─────────────────────────────────────────────────
+// ─── Recent Activity ─────────────────────────────────────────────────────────
+
+class _RecentActivity extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<TransactionBloc, TransactionState>(
+      builder: (_, state) {
+        if (state is! TransaksiTertampil || state.semuaTransaksi.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(SellerTheme.borderRadius),
+              border: Border.all(color: SellerTheme.dividerColor),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.receipt_long_outlined,
+                    color: Color(0xFFBDBDBD), size: 28),
+                SizedBox(width: 12),
+                Text('Belum ada transaksi',
+                    style: TextStyle(color: Color(0xFF9E9E9E))),
+              ],
+            ),
+          );
+        }
+
+        final recent = state.semuaTransaksi.take(3).toList();
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(SellerTheme.borderRadius),
+            border: Border.all(color: SellerTheme.dividerColor),
+          ),
+          child: Column(
+            children: recent.asMap().entries.map((e) {
+              final order = e.value;
+              final isLast = e.key == recent.length - 1;
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: _statusColor(order.status)
+                                .withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(_statusIcon(order.status),
+                              color: _statusColor(order.status), size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Pembeli #${order.userId.substring(0, 6)}',
+                                style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600)),
+                              Text(_statusLabel(order.status),
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: _statusColor(order.status))),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          'Rp ${_fmtK(order.total)}',
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: SellerTheme.darkTeal),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (!isLast)
+                    const Divider(height: 1, indent: 68),
+                ],
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
+  Color _statusColor(OrderStatus s) {
+    switch (s) {
+      case OrderStatus.pending:
+        return SellerTheme.syncPending;
+      case OrderStatus.confirmed:
+      case OrderStatus.processing:
+        return SellerTheme.tealGreen;
+      case OrderStatus.shipped:
+        return SellerTheme.accentBlue;
+      case OrderStatus.delivered:
+        return SellerTheme.neonGreen;
+      case OrderStatus.cancelled:
+      case OrderStatus.refunded:
+        return SellerTheme.errorRed;
+    }
+  }
+
+  IconData _statusIcon(OrderStatus s) {
+    switch (s) {
+      case OrderStatus.pending:
+        return Icons.access_time_rounded;
+      case OrderStatus.confirmed:
+      case OrderStatus.processing:
+        return Icons.check_circle_outline_rounded;
+      case OrderStatus.shipped:
+        return Icons.local_shipping_rounded;
+      case OrderStatus.delivered:
+        return Icons.done_all_rounded;
+      case OrderStatus.cancelled:
+      case OrderStatus.refunded:
+        return Icons.cancel_outlined;
+    }
+  }
+
+  String _statusLabel(OrderStatus s) {
+    switch (s) {
+      case OrderStatus.pending:
+        return 'Menunggu konfirmasi';
+      case OrderStatus.confirmed:
+        return 'Dikonfirmasi';
+      case OrderStatus.processing:
+        return 'Diproses';
+      case OrderStatus.shipped:
+        return 'Dalam pengiriman';
+      case OrderStatus.delivered:
+        return 'Selesai';
+      case OrderStatus.cancelled:
+        return 'Dibatalkan';
+      case OrderStatus.refunded:
+        return 'Dikembalikan';
+    }
+  }
+
+  String _fmtK(double v) {
+    if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}jt';
+    if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}K';
+    return v.toInt().toString();
+  }
+}
+
+// ─── Sync Info Banner ─────────────────────────────────────────────────────────
 
 class _SyncInfoBanner extends StatelessWidget {
   @override
@@ -454,23 +933,27 @@ class _SyncInfoBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: SellerTheme.syncPending.withValues(alpha: 0.1),
-        borderRadius:
-            BorderRadius.circular(SellerTheme.borderRadiusSmall),
+        color: SellerTheme.darkTeal.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(SellerTheme.borderRadiusSmall),
         border: Border.all(
-            color: SellerTheme.syncPending.withValues(alpha: 0.4)),
+            color: SellerTheme.neonGreen.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline_rounded,
-              color: SellerTheme.syncPending, size: 18),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: SellerTheme.neonGreen.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.storage_rounded,
+                color: SellerTheme.darkTeal, size: 14),
+          ),
           const SizedBox(width: 10),
-          Expanded(
+          const Expanded(
             child: Text(
-              // NFR-UND-02: Label Bahasa Indonesia
-              'Data produk Tersimpan di HP. Sambungkan internet untuk sinkronisasi.',
-              style: SellerTheme.bodyStyle
-                  .copyWith(fontSize: 13),
+              'Data produk tersimpan lokal di HP. Sambungkan internet untuk sinkronisasi.',
+              style: TextStyle(fontSize: 12, color: SellerTheme.darkTeal),
             ),
           ),
         ],
@@ -479,7 +962,7 @@ class _SyncInfoBanner extends StatelessWidget {
   }
 }
 
-// ─── Halaman Placeholder untuk menu lain ─────────────────────────────────────
+// ─── Placeholder & Tambah Produk ──────────────────────────────────────────────
 
 class _PlaceholderContent extends StatelessWidget {
   final String label;
@@ -497,27 +980,28 @@ class _PlaceholderContent extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 64, color: const Color(0xFFBDBDBD)),
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: SellerTheme.darkTeal.withValues(alpha: 0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 40, color: const Color(0xFFBDBDBD)),
+          ),
           const SizedBox(height: 16),
-          Text(
-            label,
-            style: SellerTheme.subHeadingStyle
-                .copyWith(color: const Color(0xFF9E9E9E)),
-          ),
+          Text(label,
+              style: SellerTheme.subHeadingStyle
+                  .copyWith(color: const Color(0xFF9E9E9E))),
           const SizedBox(height: 8),
-          Text(
-            'Fitur ini akan segera hadir.',
-            style:
-                SellerTheme.bodyStyle.copyWith(color: const Color(0xFFBDBDBD)),
-          ),
+          const Text('Fitur ini akan segera hadir.',
+              style: TextStyle(color: Color(0xFFBDBDBD))),
         ],
       ),
     );
   }
 }
 
-/// Halaman "Tambah Produk" dalam konteks dashboard — menampilkan
-/// tombol yang membuka ProductFormView sebagai halaman baru.
 class _TambahProdukContent extends StatelessWidget {
   const _TambahProdukContent({super.key});
 
@@ -530,20 +1014,29 @@ class _TambahProdukContent extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 88,
-              height: 88,
+              width: 100,
+              height: 100,
               decoration: BoxDecoration(
-                color: SellerTheme.primaryGreen.withValues(alpha: 0.08),
-                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [SellerTheme.darkTeal, Color(0xFF0D4A3A)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: [
+                  BoxShadow(
+                    color: SellerTheme.neonGreen.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
               child: const Icon(Icons.add_box_rounded,
-                  size: 44, color: SellerTheme.primaryGreen),
+                  size: 48, color: SellerTheme.neonGreen),
             ),
-            const SizedBox(height: 20),
-            const Text(
-              'Tambah Produk Baru',
-              style: SellerTheme.subHeadingStyle,
-            ),
+            const SizedBox(height: 24),
+            const Text('Tambah Produk Baru',
+                style: SellerTheme.subHeadingStyle),
             const SizedBox(height: 8),
             const Text(
               'Isi informasi produk yang ingin Anda jual di katalog PaDe.',
@@ -553,35 +1046,51 @@ class _TambahProdukContent extends StatelessWidget {
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
-              height: 50,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  final bloc = context.read<ProductBloc>();
-                  Navigator.of(context).push(PageRouteBuilder<void>(
-                    pageBuilder: (_, a, __) => BlocProvider.value(
-                      value: bloc,
-                      child: const ProductFormView(),
+              height: 52,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: SellerTheme.neonGradient,
+                  borderRadius:
+                      BorderRadius.circular(SellerTheme.borderRadius),
+                  boxShadow: [
+                    BoxShadow(
+                      color: SellerTheme.neonGreen.withValues(alpha: 0.35),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
                     ),
-                    transitionsBuilder: (_, a, __, child) => SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0, 1),
-                        end: Offset.zero,
-                      ).animate(CurvedAnimation(
-                          parent: a, curve: Curves.easeInOut)),
-                      child: child,
+                  ],
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    final bloc = context.read<ProductBloc>();
+                    Navigator.of(context).push(PageRouteBuilder<void>(
+                      pageBuilder: (_, a, __) => BlocProvider.value(
+                        value: bloc,
+                        child: const ProductFormView(),
+                      ),
+                      transitionsBuilder: (_, a, __, child) => SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 1),
+                          end: Offset.zero,
+                        ).animate(CurvedAnimation(
+                            parent: a, curve: Curves.easeInOut)),
+                        child: child,
+                      ),
+                      transitionDuration: SellerTheme.pageTransitionDuration,
+                    ));
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(SellerTheme.borderRadius),
                     ),
-                    transitionDuration: SellerTheme.pageTransitionDuration,
-                  ));
-                },
-                icon: const Icon(Icons.add_rounded),
-                label: const Text('Mulai Tambah Produk'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: SellerTheme.primaryGreen,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(SellerTheme.borderRadius),
                   ),
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Mulai Tambah Produk',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ),
@@ -592,3 +1101,5 @@ class _TambahProdukContent extends StatelessWidget {
   }
 }
 
+// expose for quick action
+const accentBlue = SellerTheme.accentBlue;

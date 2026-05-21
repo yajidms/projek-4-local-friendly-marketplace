@@ -198,14 +198,13 @@ class _DrawerHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Gunakan Container biasa (bukan DrawerHeader) agar gradient penuh selebar drawer
     final topPad = MediaQuery.of(context).padding.top;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.fromLTRB(20, topPad + 20, 20, 20),
+      padding: EdgeInsets.fromLTRB(20, topPad + 20, 20, 24),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [SellerTheme.primaryGreenDark, SellerTheme.primaryGreen],
+          colors: [SellerTheme.deepDark, SellerTheme.darkTeal],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -214,31 +213,58 @@ class _DrawerHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Avatar toko dengan border neon
           Container(
-            width: 52,
-            height: 52,
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
               shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                colors: [SellerTheme.neonGreen, SellerTheme.tealGreen],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: SellerTheme.neonGreen.withValues(alpha: 0.4),
+                  blurRadius: 12,
+                  spreadRadius: 2,
+                ),
+              ],
             ),
-            child: const Icon(Icons.store_rounded,
-                color: Colors.white, size: 28),
+            child: const Icon(Icons.store_rounded, color: Colors.white, size: 30),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Text(
             shopName,
             style: const TextStyle(
                 color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold),
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.3),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 2),
-          Text(
-            'PaDe Seller',
-            style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.75), fontSize: 12),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Container(
+                width: 7,
+                height: 7,
+                decoration: const BoxDecoration(
+                  color: SellerTheme.neonGreen,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'PaDe Seller • Aktif',
+                style: TextStyle(
+                    color: SellerTheme.neonGreen.withValues(alpha: 0.9),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500),
+              ),
+            ],
           ),
           const SizedBox(height: 4),
         ],
@@ -267,28 +293,35 @@ class _NavTile extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: selected
-            ? SellerTheme.primaryGreen.withValues(alpha: 0.1)
+            ? SellerTheme.neonGreen.withValues(alpha: 0.12)
             : Colors.transparent,
-        borderRadius:
-            BorderRadius.circular(SellerTheme.borderRadiusSmall),
+        borderRadius: BorderRadius.circular(SellerTheme.borderRadiusSmall),
+        border: selected
+            ? Border.all(color: SellerTheme.neonGreen.withValues(alpha: 0.3), width: 1)
+            : null,
       ),
       child: ListTile(
         contentPadding: padding,
         leading: Icon(item.icon,
-            color: selected
-                ? SellerTheme.primaryGreen
-                : const Color(0xFF757575),
+            color: selected ? SellerTheme.neonGreen : const Color(0xFF757575),
             size: 22),
         title: Text(
           item.label,
           style: SellerTheme.labelStyle.copyWith(
-            color: selected
-                ? SellerTheme.primaryGreen
-                : const Color(0xFF424242),
-            fontWeight:
-                selected ? FontWeight.w700 : FontWeight.w500,
+            color: selected ? SellerTheme.darkTeal : const Color(0xFF424242),
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
+        trailing: selected
+            ? Container(
+                width: 4,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: SellerTheme.neonGreen,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              )
+            : null,
         onTap: onTap,
       ),
     );

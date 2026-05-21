@@ -26,7 +26,6 @@ const _kKategori = [
 const _kSatuan = [
   'pcs', 'kg', 'gram', 'liter', 'ml',
   'lusin', 'pak', 'dus',
-  // Satuan tambahan dari data produk
   'karung', 'botol', 'bungkus', 'renceng', 'sachet', 'ikat', 'lembar',
 ];
 
@@ -72,8 +71,6 @@ class _ProductFormViewState extends State<ProductFormView> {
     _beratCtrl = TextEditingController(
         text: p?.weight != null ? p!.weight!.toString() : '');
     _skuCtrl = TextEditingController(text: p?.sku ?? '');
-    // Pastikan nilai kategori & satuan produk ada di daftar pilihan.
-    // Jika tidak (misal data lama / seed pakai nilai berbeda), fallback ke item pertama.
     final savedCategory = p?.category ?? _kKategori.first;
     _kategori = _kKategori.contains(savedCategory) ? savedCategory : _kKategori.first;
 
@@ -445,11 +442,7 @@ class _FormHeader extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(20, topPad + 14, 20, 28),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [SellerTheme.primaryGreenDark, SellerTheme.primaryGreen],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: SellerTheme.headerGradient,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(28),
           bottomRight: Radius.circular(28),
@@ -461,31 +454,60 @@ class _FormHeader extends StatelessWidget {
           InkWell(
             borderRadius: BorderRadius.circular(24),
             onTap: () => Navigator.of(context).maybePop(),
-            child: const SizedBox(
-              width: 48,
-              height: 48,
-              child: Center(
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.15)),
+              ),
+              child: const Center(
                 child: Icon(Icons.arrow_back_ios_new_rounded,
-                    color: Colors.white, size: 20),
+                    color: Colors.white, size: 18),
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            isEdit ? 'Edit Produk' : 'Tambah Produk',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            isEdit
-                ? 'Perbarui informasi produk Anda'
-                : 'Isi data produk yang ingin Anda jual',
-            style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: SellerTheme.neonGreen.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  isEdit ? Icons.edit_rounded : Icons.add_box_rounded,
+                  color: SellerTheme.neonGreen,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isEdit ? 'Edit Produk' : 'Tambah Produk',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    isEdit
+                        ? 'Perbarui informasi produk Anda'
+                        : 'Isi data produk yang ingin Anda jual',
+                    style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.65),
+                        fontSize: 12),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

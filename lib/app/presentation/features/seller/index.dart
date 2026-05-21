@@ -16,6 +16,7 @@ export 'views/product_form_view.dart';
 export 'views/product_list_view.dart';
 export 'views/seller_dashboard_view.dart';
 export 'views/seller_registration_view.dart';
+export 'views/seller_settings_view.dart';
 export 'views/transaction_list_view.dart';
 
 // Widgets
