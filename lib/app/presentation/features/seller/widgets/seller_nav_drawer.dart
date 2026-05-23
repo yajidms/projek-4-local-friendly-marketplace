@@ -116,7 +116,7 @@ class _SellerNavDrawerState extends State<SellerNavDrawer>
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       child: Column(
         children: [
           // ── Header ────────────────────────────────────────────────────────
@@ -303,12 +303,16 @@ class _NavTile extends StatelessWidget {
       child: ListTile(
         contentPadding: padding,
         leading: Icon(item.icon,
-            color: selected ? SellerTheme.neonGreen : const Color(0xFF757575),
+            color: selected
+                ? SellerTheme.neonGreen
+                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
             size: 22),
         title: Text(
           item.label,
           style: SellerTheme.labelStyle.copyWith(
-            color: selected ? SellerTheme.darkTeal : const Color(0xFF424242),
+            color: selected
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
@@ -349,14 +353,18 @@ class _KatalogSection extends StatelessWidget {
       children: [
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          leading: const Icon(Icons.inventory_2_rounded,
-              color: Color(0xFF757575), size: 22),
-          title: Text('Katalog', style: SellerTheme.labelStyle),
+          leading: Icon(Icons.inventory_2_rounded,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
+              size: 22),
+          title: Text('Katalog',
+              style: SellerTheme.labelStyle.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+              )),
           trailing: AnimatedRotation(
             duration: SellerTheme.animationDuration,
             turns: expanded ? 0.5 : 0,
-            child: const Icon(Icons.expand_more,
-                color: Color(0xFFBDBDBD)),
+            child: Icon(Icons.expand_more,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
           ),
           onTap: onToggle,
         ),

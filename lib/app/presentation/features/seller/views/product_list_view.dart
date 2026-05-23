@@ -63,7 +63,7 @@ class _ProductListViewState extends State<ProductListView> {
       children: [
         // ── Search & Filter Bar ───────────────────────────────────────────
         Container(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           child: Column(
             children: [
@@ -97,7 +97,7 @@ class _ProductListViewState extends State<ProductListView> {
                         color: SellerTheme.primaryGreen, width: 2),
                   ),
                   filled: true,
-                  fillColor: const Color(0xFFF9F9F9),
+                  fillColor: Theme.of(context).inputDecorationTheme.fillColor,
                 ),
                 onChanged: (v) => setState(() => _query = v),
               ),
@@ -285,8 +285,9 @@ class _ProductCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(product.name,
-                          style: SellerTheme.subHeadingStyle
-                              .copyWith(fontSize: 14),
+                          style: SellerTheme.subHeadingStyle.copyWith(
+                              fontSize: 14,
+                              color: Theme.of(context).colorScheme.onSurface),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 2),
@@ -309,8 +310,12 @@ class _ProductCard extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.edit_rounded,
-                      color: Color(0xFF9E9E9E), size: 20),
+                  icon: Icon(Icons.edit_rounded,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.45),
+                      size: 20),
                   onPressed: () => onEdit(product),
                   tooltip: 'Edit produk',
                 ),
@@ -455,7 +460,10 @@ class _CategoryChip extends StatelessWidget {
           decoration: BoxDecoration(
             color: selected
                 ? SellerTheme.primaryGreen
-                : const Color(0xFFF0F0F0),
+                : Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -463,7 +471,12 @@ class _CategoryChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: selected ? Colors.white : const Color(0xFF757575),
+              color: selected
+                  ? Colors.white
+                  : Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.7),
             ),
           ),
         ),
@@ -492,8 +505,11 @@ class _EmptyState extends StatelessWidget {
             query.isEmpty
                 ? 'Belum ada produk di katalog'
                 : 'Produk "$query" tidak ditemukan',
-            style: SellerTheme.subHeadingStyle
-                .copyWith(color: const Color(0xFF9E9E9E)),
+            style: SellerTheme.subHeadingStyle.copyWith(
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.4)),
           ),
         ],
       ),

@@ -14,6 +14,7 @@ import '../../../../../domain/entities/index.dart';
 import '../bloc/product_bloc.dart';
 import '../bloc/transaction_bloc.dart';
 import '../widgets/seller_nav_drawer.dart';
+import '../widgets/seller_theme_toggle.dart';
 import 'inventory_view.dart';
 import 'product_form_view.dart';
 import 'product_list_view.dart';
@@ -35,9 +36,14 @@ class SellerDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: SellerTheme.sellerThemeData,
-      child: const _DashboardBody(),
+    // ValueListenableBuilder memastikan seluruh dashboard rebuild
+    // saat toggle light/dark ditekan.
+    return ValueListenableBuilder<bool>(
+      valueListenable: sellerIsDarkNotifier,
+      builder: (_, isDark, __) => Theme(
+        data: isDark ? SellerTheme.darkThemeData : SellerTheme.lightThemeData,
+        child: const _DashboardBody(),
+      ),
     );
   }
 }
@@ -66,7 +72,7 @@ class _DashboardBodyState extends State<_DashboardBody> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F7F0),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: SellerTheme.headerGradient),
@@ -106,6 +112,8 @@ class _DashboardBodyState extends State<_DashboardBody> {
           ],
         ),
         actions: [
+          // Tombol toggle light/dark mode
+          const SellerThemeModeButton(),
           BlocBuilder<ProductBloc, ProductState>(
             builder: (ctx, state) {
               final isSyncing = state is ProductSedangSinkron;
@@ -259,10 +267,16 @@ class _SectionTitle extends StatelessWidget {
             color: SellerTheme.neonGreen.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, size: 16, color: SellerTheme.darkTeal),
+          child: Icon(icon, size: 16,
+              color: Theme.of(context).colorScheme.primary),
         ),
         const SizedBox(width: 10),
-        Text(title, style: SellerTheme.subHeadingStyle),
+        Text(
+          title,
+          style: SellerTheme.subHeadingStyle.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
       ],
     );
   }
@@ -797,9 +811,10 @@ class _RecentActivity extends StatelessWidget {
           return Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(SellerTheme.borderRadius),
-              border: Border.all(color: SellerTheme.dividerColor),
+              border: Border.all(
+                  color: Theme.of(context).dividerColor),
             ),
             child: const Row(
               children: [
@@ -816,9 +831,10 @@ class _RecentActivity extends StatelessWidget {
         final recent = state.semuaTransaksi.take(3).toList();
         return Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(SellerTheme.borderRadius),
-            border: Border.all(color: SellerTheme.dividerColor),
+            border: Border.all(
+                color: Theme.of(context).dividerColor),
           ),
           child: Column(
             children: recent.asMap().entries.map((e) {
@@ -864,7 +880,7 @@ class _RecentActivity extends StatelessWidget {
                           style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: SellerTheme.darkTeal),
+                              color: Theme.of(context).colorScheme.primary),
                         ),
                       ],
                     ),
@@ -945,10 +961,11 @@ class _RecentActivity extends StatelessWidget {
 class _SyncInfoBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: SellerTheme.darkTeal.withValues(alpha: 0.06),
+        color: cs.surface,
         borderRadius: BorderRadius.circular(SellerTheme.borderRadiusSmall),
         border: Border.all(
             color: SellerTheme.neonGreen.withValues(alpha: 0.25)),
@@ -961,14 +978,16 @@ class _SyncInfoBanner extends StatelessWidget {
               color: SellerTheme.neonGreen.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.storage_rounded,
-                color: SellerTheme.darkTeal, size: 14),
+            child: Icon(Icons.storage_rounded,
+                color: cs.primary, size: 14),
           ),
           const SizedBox(width: 10),
-          const Expanded(
+          Expanded(
             child: Text(
               'Data produk tersimpan lokal di HP. Sambungkan internet untuk sinkronisasi.',
-              style: TextStyle(fontSize: 12, color: SellerTheme.darkTeal),
+              style: TextStyle(
+                  fontSize: 12,
+                  color: cs.onSurface.withValues(alpha: 0.75)),
             ),
           ),
         ],

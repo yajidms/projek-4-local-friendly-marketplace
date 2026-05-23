@@ -17,7 +17,7 @@ class ProductDetailView extends StatelessWidget {
     return Theme(
       data: SellerTheme.sellerThemeData,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF4F6F4),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: CustomScrollView(
           slivers: [
             _ProdukHeader(product: product),
@@ -32,7 +32,8 @@ class ProductDetailView extends StatelessWidget {
                       title: 'Deskripsi Produk',
                       icon: Icons.description_rounded,
                       child: Text(product.description,
-                          style: const TextStyle(fontSize: 14, height: 1.6, color: Color(0xFF424242))),
+                          style: TextStyle(fontSize: 14, height: 1.6,
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8))),
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -41,7 +42,8 @@ class ProductDetailView extends StatelessWidget {
                       title: 'Spesifikasi / Bahan',
                       icon: Icons.science_rounded,
                       child: Text(product.specifications!,
-                          style: const TextStyle(fontSize: 14, height: 1.6, color: Color(0xFF424242))),
+                          style: TextStyle(fontSize: 14, height: 1.6,
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8))),
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -170,7 +172,10 @@ class _InfoDasarCard extends StatelessWidget {
           Row(children: [
             const Icon(Icons.info_outline_rounded, size: 18, color: SellerTheme.primaryGreen),
             const SizedBox(width: 8),
-            Text('Informasi Produk', style: SellerTheme.subHeadingStyle.copyWith(fontSize: 14)),
+            Text('Informasi Produk',
+                style: SellerTheme.subHeadingStyle.copyWith(
+                    fontSize: 14,
+                    color: Theme.of(context).colorScheme.onSurface)),
           ]),
           const SizedBox(height: 12),
           const Divider(height: 1),
@@ -214,12 +219,15 @@ class _Row extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 10),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Icon(icon, size: 16, color: const Color(0xFF9E9E9E)),
+        Icon(icon, size: 16,
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
         const SizedBox(width: 10),
         SizedBox(width: 110, child: Text(label,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF757575)))),
+            style: TextStyle(fontSize: 13,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55)))),
         Expanded(child: Text(value,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF212121)))),
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface))),
       ]),
     );
   }
@@ -242,7 +250,10 @@ class _SectionCard extends StatelessWidget {
           Row(children: [
             Icon(icon, size: 18, color: SellerTheme.primaryGreen),
             const SizedBox(width: 8),
-            Text(title, style: SellerTheme.subHeadingStyle.copyWith(fontSize: 14)),
+            Text(title,
+                style: SellerTheme.subHeadingStyle.copyWith(
+                    fontSize: 14,
+                    color: Theme.of(context).colorScheme.onSurface)),
           ]),
           const SizedBox(height: 12),
           const Divider(height: 1),
@@ -266,7 +277,10 @@ class _UlasanSection extends StatelessWidget {
           Row(children: [
             const Icon(Icons.star_rounded, size: 18, color: Color(0xFFF57F17)),
             const SizedBox(width: 8),
-            Text('Ulasan Pembeli', style: SellerTheme.subHeadingStyle.copyWith(fontSize: 14)),
+            Text('Ulasan Pembeli',
+                style: SellerTheme.subHeadingStyle.copyWith(
+                    fontSize: 14,
+                    color: Theme.of(context).colorScheme.onSurface)),
             const Spacer(),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
@@ -291,7 +305,9 @@ class _UlasanSection extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text('Belum Ada Ulasan',
-                style: SellerTheme.subHeadingStyle.copyWith(color: const Color(0xFF9E9E9E), fontSize: 14)),
+                style: SellerTheme.subHeadingStyle.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                    fontSize: 14)),
             const SizedBox(height: 4),
             Text('Ulasan dari pembeli akan tampil di sini setelah produk terjual.',
                 style: const TextStyle(fontSize: 12, color: Color(0xFFBDBDBD)),

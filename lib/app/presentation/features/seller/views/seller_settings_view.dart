@@ -11,6 +11,7 @@
 
 import 'package:flutter/material.dart';
 import '../../../../theme/seller_theme.dart';
+import '../widgets/seller_theme_toggle.dart';
 
 class SellerSettingsView extends StatefulWidget {
   final String initialShopName;
@@ -79,6 +80,14 @@ class _SellerSettingsViewState extends State<SellerSettingsView> {
           _SettingsHeader(),
 
           const SizedBox(height: 16),
+
+          // ── Seksi 0: Mode Tampilan ─────────────────────────────────────
+          _buildSection(
+            icon: Icons.palette_rounded,
+            title: 'Mode Tampilan',
+            color: SellerTheme.neonGreen,
+            child: const SellerThemeToggle(),
+          ),
 
           // ── Seksi 1: Foto Toko ─────────────────────────────────────────────
           _buildSection(
@@ -211,9 +220,9 @@ class _SellerSettingsViewState extends State<SellerSettingsView> {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(SellerTheme.borderRadius),
-              border: Border.all(color: SellerTheme.dividerColor),
+              border: Border.all(color: Theme.of(context).dividerColor),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.03),
@@ -871,7 +880,9 @@ class _AkunTile extends StatelessWidget {
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: isAction ? color : const Color(0xFF212121))),
+                  color: isAction
+                      ? color
+                      : Theme.of(context).colorScheme.onSurface)),
         ),
         if (value.isNotEmpty)
           Text(value,
@@ -892,10 +903,10 @@ class _SettingsLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF424242)),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75)),
       );
 }
 

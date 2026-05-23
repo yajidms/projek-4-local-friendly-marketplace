@@ -72,7 +72,7 @@ class _InventoryViewState extends State<InventoryView> {
       children: [
         // ── Summary Banner ────────────────────────────────────────────────
         Container(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           padding: const EdgeInsets.all(16),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -152,7 +152,7 @@ class _InventoryViewState extends State<InventoryView> {
           height: hasChanges ? 80 : 0,
           child: hasChanges
               ? Container(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                   child: SizedBox(
                     width: double.infinity,
@@ -318,14 +318,20 @@ class _InventoryCardState extends State<_InventoryCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(p.name,
-                      style: SellerTheme.subHeadingStyle
-                          .copyWith(fontSize: 13),
+                      style: SellerTheme.subHeadingStyle.copyWith(
+                          fontSize: 13,
+                          color: Theme.of(context).colorScheme.onSurface),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 2),
                   Text(
                     p.category,
-                    style: SellerTheme.bodyStyle.copyWith(fontSize: 12),
+                    style: SellerTheme.bodyStyle.copyWith(
+                        fontSize: 12,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.6)),
                   ),
                   if (widget.isChanged)
                     Text(
@@ -385,20 +391,23 @@ class _StockStepper extends StatelessWidget {
             controller: stokCtrl,
             textAlign: TextAlign.center,
             keyboardType: TextInputType.number,
-            style: const TextStyle(
-                fontSize: 15, fontWeight: FontWeight.w700),
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
+            style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: Theme.of(context).colorScheme.onSurface),
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
               enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: SellerTheme.dividerColor),
+                borderSide: BorderSide(
+                    color: Theme.of(context).dividerColor),
               ),
-              focusedBorder: OutlineInputBorder(
+              focusedBorder: const OutlineInputBorder(
                 borderSide: BorderSide(
                     color: SellerTheme.primaryGreen, width: 2),
               ),
               filled: false,
               contentPadding:
-                  EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                  const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
             ),
             onChanged: (v) {
               final parsed = int.tryParse(v);
@@ -433,21 +442,27 @@ class _StepBtn extends StatelessWidget {
     return InkWell(
       onTap: enabled ? onTap : null,
       borderRadius: BorderRadius.circular(6),
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: enabled
-              ? SellerTheme.primaryGreen.withValues(alpha: 0.1)
-              : const Color(0xFFF0F0F0),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Icon(icon,
-            size: 18,
+        child: Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
             color: enabled
-                ? SellerTheme.primaryGreen
-                : const Color(0xFFBDBDBD)),
-      ),
+                ? SellerTheme.primaryGreen.withValues(alpha: 0.1)
+                : Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Icon(icon,
+              size: 18,
+              color: enabled
+                  ? SellerTheme.primaryGreen
+                  : Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.3)),
+        ),
     );
   }
 }

@@ -28,8 +28,37 @@ class SellerRegistrationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Halaman Daftar Toko selalu menggunakan tema terang dengan
+    // warna input hijau muda — onboarding harus terasa segar & ramah.
+    final registrationTheme = SellerTheme.lightThemeData.copyWith(
+      scaffoldBackgroundColor: const Color(0xFFF4F6F4),
+      inputDecorationTheme: SellerTheme.lightThemeData.inputDecorationTheme
+          .copyWith(
+        fillColor: const Color(0xFFE8F5E9), // hijau muda mint
+        filled: true,
+        enabledBorder: OutlineInputBorder(
+          borderRadius:
+              BorderRadius.circular(SellerTheme.borderRadiusSmall),
+          borderSide: const BorderSide(color: Color(0xFFC8E6C9)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius:
+              BorderRadius.circular(SellerTheme.borderRadiusSmall),
+          borderSide: const BorderSide(
+              color: SellerTheme.neonGreen, width: 2),
+        ),
+        hintStyle: const TextStyle(color: Color(0xFF9E9E9E)),
+      ),
+      dropdownMenuTheme: DropdownMenuThemeData(
+        inputDecorationTheme: InputDecorationTheme(
+          fillColor: const Color(0xFFE8F5E9),
+          filled: true,
+        ),
+      ),
+    );
+
     return Theme(
-      data: SellerTheme.sellerThemeData,
+      data: registrationTheme,
       child: const _RegistrationBody(),
     );
   }
@@ -181,8 +210,9 @@ class _FormContent extends StatelessWidget {
           initialValue: state.jenisUsaha,
           decoration:
               const InputDecoration(hintText: 'Pilih jenis usaha'),
-          style: const TextStyle(
-              fontSize: 14, color: Color(0xFF212121)), // min 14sp
+          style: TextStyle(
+              fontSize: 14,
+              color: Theme.of(context).colorScheme.onSurface),
           items: _jenisUsahaList
               .map((o) => DropdownMenuItem(
                   value: o,
@@ -259,9 +289,10 @@ class _Label extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Text(text,
-            // NFR-UND-02: min font size 14sp
-            style: SellerTheme.labelStyle
-                .copyWith(fontWeight: FontWeight.w600)),
+            style: SellerTheme.labelStyle.copyWith(
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurface,
+            )),
       );
 }
 
@@ -280,7 +311,9 @@ class _PadeField extends StatelessWidget {
   @override
   Widget build(BuildContext context) => TextField(
         maxLines: maxLines,
-        style: const TextStyle(fontSize: 14), // min 14sp
+        style: TextStyle(
+            fontSize: 14,
+            color: Theme.of(context).colorScheme.onSurface),
         decoration: InputDecoration(hintText: hint),
         onChanged: onChanged,
       );
