@@ -8,13 +8,16 @@ class AppBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return BottomNavigationBar(
       currentIndex: currentIndex,
       type: BottomNavigationBarType.fixed,
       selectedItemColor: Colors.green,
-      unselectedItemColor: Colors.black54,
+      unselectedItemColor: theme.colorScheme.onSurface.withValues(alpha: 0.6), // ✅ ikut tema
+      backgroundColor: theme.colorScheme.surface, // ✅ ikut tema
       onTap: (i) {
-        if (i == currentIndex) return; // udah di halaman ini, skip
+        if (i == currentIndex) return;
         switch (i) {
           case 0: Navigator.pushReplacementNamed(context, AppRoutes.home);
           case 1: Navigator.pushReplacementNamed(context, AppRoutes.catalog);

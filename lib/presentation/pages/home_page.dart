@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../../app/routes/app_router.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F0F0),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -22,24 +24,29 @@ class HomePage extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: theme.colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(24),
                         ),
-                        child: const TextField(
-                          decoration: InputDecoration(
-                            icon: Icon(Icons.search, color: Colors.black54),
-                            hintText: 'Cari produk...',
-                            border: InputBorder.none,
-                            isDense: true,
-                            contentPadding: EdgeInsets.symmetric(vertical: 10),
+                        child: GestureDetector(
+                          onTap: () => Navigator.pushNamed(context, AppRoutes.catalog),
+                          child: AbsorbPointer(
+                            child: TextField(
+                              decoration: InputDecoration(
+                                icon: Icon(Icons.search, color: theme.hintColor),
+                                hintText: 'Cari produk...',
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Icon(Icons.notifications_none_rounded),
+                    Icon(Icons.notifications_none_rounded, color: theme.iconTheme.color),
                     const SizedBox(width: 8),
-                    const Icon(Icons.chat_bubble_outline_rounded),
+                    Icon(Icons.chat_bubble_outline_rounded, color: theme.iconTheme.color),
                   ],
                 ),
               ),
@@ -57,43 +64,125 @@ class HomePage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Kategori
+              // Kategori — 2 baris
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: const [
-                    _CategoryItem(icon: Icons.location_on_outlined, label: 'Lokasi'),
-                    _CategoryItem(icon: Icons.checkroom_outlined, label: 'Fashion'),
-                    _CategoryItem(icon: Icons.storefront_outlined, label: 'Toko'),
-                    _CategoryItem(icon: Icons.grid_view_rounded, label: 'Lainnya'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Small product row
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(4, (i) => Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(8),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _CategoryItem(icon: Icons.location_on_outlined, label: 'Lokasi', category: '', sortByLocation: true,),
+                        _CategoryItem(icon: Icons.checkroom_outlined, label: 'Fashion', category: 'Fashion'),
+                        _CategoryItem(icon: Icons.storefront_outlined, label: 'Toko', category: 'Toko'),
+                        _CategoryItem(icon: Icons.rice_bowl_outlined, label: 'Makanan', category: 'Makanan'),
+                      ],
                     ),
-                  )),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _CategoryItem(icon: Icons.devices_outlined, label: 'Elektronik', category: 'Elektronik'),
+                        _CategoryItem(icon: Icons.eco_outlined, label: 'Sayuran', category: 'Sayuran'),
+                        _CategoryItem(icon: Icons.home_outlined, label: 'Rumah Tangga', category: 'Rumah Tangga'),
+                        _CategoryItem(
+                          icon: Icons.grid_view_rounded, 
+                          label: 'Lainnya', 
+                          category: '',
+                          onTapOverride: () {
+                            // Memunculkan Bottom Sheet saat ditekan
+                            showModalBottomSheet(
+                              context: context,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                              ),
+                              builder: (context) {
+                                return Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min, // Sesuaikan tinggi dengan isi
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Kategori Lainnya',
+                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // Contoh isi kategori tambahan
+                                      Wrap(
+                                        spacing: 24, // Jarak antar item
+                                        runSpacing: 16,
+                                        children: [
+                                          // Kamu bisa pakai _CategoryItem lagi di sini!
+                                          // Pastikan saat diklik, tutup dulu bottom sheet-nya pakai Navigator.pop
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.pop(context); // Tutup popup
+                                              Navigator.pushNamed(
+                                                context, 
+                                                AppRoutes.catalog, 
+                                                arguments: {'category': 'Olahraga'}
+                                              );
+                                            },
+                                            child: const Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(Icons.sports_basketball_outlined, size: 30, color: Colors.green),
+                                                SizedBox(height: 4),
+                                                Text('Olahraga', style: TextStyle(fontSize: 12)),
+                                              ],
+                                            ),
+                                          ),
+                                          
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.pop(context); // Tutup popup
+                                              Navigator.pushNamed(
+                                                context, 
+                                                AppRoutes.catalog, 
+                                                arguments: {'category': 'Buku'}
+                                              );
+                                            },
+                                            child: const Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(Icons.menu_book_rounded, size: 30, color: Colors.green),
+                                                SizedBox(height: 4),
+                                                Text('Buku', style: TextStyle(fontSize: 12)),
+                                              ],
+                                            ),
+                                          ),
+                                          
+                                          // Tambahkan kategori lain yang kamu mau di sini...
+                                        ],
+                                      ),
+                                      const SizedBox(height: 32),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+
+                      ],
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 20),
 
               // Baru-baru ini dibeli
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text('Baru-baru ini dibeli',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Baru-baru ini dibeli',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
               ),
               const SizedBox(height: 12),
               Padding(
@@ -104,7 +193,7 @@ class HomePage extends StatelessWidget {
                       child: Container(
                         height: 130,
                         decoration: BoxDecoration(
-                          color: Colors.grey[300],
+                          color: theme.colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
@@ -114,7 +203,7 @@ class HomePage extends StatelessWidget {
                       child: Container(
                         height: 130,
                         decoration: BoxDecoration(
-                          color: Colors.grey[300],
+                          color: theme.colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
@@ -135,24 +224,48 @@ class HomePage extends StatelessWidget {
 class _CategoryItem extends StatelessWidget {
   final IconData icon;
   final String label;
-  const _CategoryItem({required this.icon, required this.label});
+  final String category;
+  final bool sortByLocation;
+  final VoidCallback? onTapOverride; // ← Tambah ini
+
+  const _CategoryItem({
+    super.key, // ganti super.key kalau versinya butuh
+    required this.icon,
+    required this.label,
+    required this.category,
+    this.sortByLocation = false,
+    this.onTapOverride, // ← Tambah ini
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+    final theme = Theme.of(context);
+
+    return GestureDetector(
+      // 👇 Ubah bagian onTap ini
+      onTap: onTapOverride ?? () => Navigator.pushNamed(
+        context,
+        AppRoutes.catalog,
+        arguments: {
+          'category': category,
+          'sortByLocation': sortByLocation,
+        },
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 26, color: theme.iconTheme.color),
           ),
-          child: Icon(icon, size: 26),
-        ),
-        const SizedBox(height: 6),
-        Text(label, style: const TextStyle(fontSize: 11)),
-      ],
+          const SizedBox(height: 6),
+          Text(label, style: TextStyle(fontSize: 11, color: theme.textTheme.bodySmall?.color)),
+        ],
+      ),
     );
   }
 }

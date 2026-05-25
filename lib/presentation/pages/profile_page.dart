@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../main.dart';
 import '../widgets/bottom_nav_bar.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -9,12 +10,10 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  bool _isOnline = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F0F0),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -30,10 +29,18 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: Text('username',
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     ),
-                    Switch(
-                      value: _isOnline,
-                      onChanged: (val) => setState(() => _isOnline = val),
-                      activeColor: Colors.green,
+                    ValueListenableBuilder<ThemeMode>(
+                      valueListenable: themeNotifier,
+                      builder: (context, themeMode, _) {
+                        return Switch(
+                          value: themeMode == ThemeMode.dark,
+                          onChanged: (isDark) {
+                            themeNotifier.value =
+                                isDark ? ThemeMode.dark : ThemeMode.light;
+                          },
+                          activeThumbColor: Colors.green,
+                        );
+                      },
                     ),
                     const Icon(Icons.settings_outlined),
                   ],
@@ -57,7 +64,7 @@ class _ProfilePageState extends State<ProfilePage> {
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
@@ -101,7 +108,7 @@ class _MenuItem extends StatelessWidget {
     return Column(
       children: [
         ListTile(
-          leading: Icon(icon, color: Colors.black87),
+          leading: Icon(icon, color: Theme.of(context).iconTheme.color),
           title: Text(label, style: const TextStyle(fontSize: 14)),
           trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.black38),
           onTap: () {},

@@ -1,12 +1,28 @@
 import 'package:flutter/material.dart';
-
+import 'package:hive_flutter/hive_flutter.dart';
 import 'config/env.dart';
 import 'app/pages/auth_placeholder_page.dart';
 import 'app/routes/app_router.dart';
+import 'app/data/sample_data.dart';
+
+final themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.light);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Env.load();
+
+  // Init Hive
+  await Hive.initFlutter();
+  final box = await Hive.openBox('products');
+  await Hive.openBox('reviews');
+
+  // Seed sample data (hanya sekali, kalau box masih kosong)
+  if (box.isEmpty) {
+    for (final product in sampleProducts) {
+      await box.put(product.id, product.toMap());
+    }
+  }
+
   runApp(const MyApp());
 }
 
@@ -15,29 +31,47 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF1F6FEB),
-      brightness: Brightness.light,
-    );
-
-    return MaterialApp(
-      title: 'Local Friendly Marketplace',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: colorScheme,
-        scaffoldBackgroundColor: const Color(0xFFF5F7FB),
-        appBarTheme: const AppBarTheme(
-          centerTitle: false,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          backgroundColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-        ),
-      ),
-      initialRoute: AppRoutes.auth,
-      onGenerateRoute: AppRouter.onGenerateRoute,
-      home: const AuthPlaceholderPage(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (context, themeMode, _) {
+        return MaterialApp(
+          title: 'Local Friendly Marketplace',
+          debugShowCheckedModeBanner: false,
+          themeMode: themeMode,
+          theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF1F6FEB),
+              brightness: Brightness.light,
+            ),
+            scaffoldBackgroundColor: const Color(0xFFF5F7FB),
+            appBarTheme: const AppBarTheme(
+              centerTitle: false,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+            ),
+          ),
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF1F6FEB),
+              brightness: Brightness.dark,
+            ),
+            appBarTheme: const AppBarTheme(
+              centerTitle: false,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+            ),
+          ),
+          initialRoute: AppRoutes.auth,
+          onGenerateRoute: AppRouter.onGenerateRoute,
+          home: const AuthPlaceholderPage(),
+        );
+      },
     );
   }
 }
