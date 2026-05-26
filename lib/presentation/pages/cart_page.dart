@@ -206,9 +206,7 @@ class _CartPageState extends State<CartPage> {
                             child: Row(
                               children: [
                                 IconButton(
-                                  constraints: const BoxConstraints(),
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  icon: const Icon(Icons.remove, size: 14),
+                                  icon: const Icon(Icons.remove, size: 20),
                                   onPressed: () {
                                     setState(() {
                                       if (item['quantity'] > 1) {
@@ -222,9 +220,7 @@ class _CartPageState extends State<CartPage> {
                                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                                 ),
                                 IconButton(
-                                  constraints: const BoxConstraints(),
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  icon: const Icon(Icons.add, size: 14),
+                                  icon: const Icon(Icons.add, size: 20),
                                   onPressed: () {
                                     setState(() {
                                       item['quantity']++;

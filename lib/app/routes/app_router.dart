@@ -11,6 +11,8 @@ import '../../presentation/pages/product_detail_page.dart';
 import '../../presentation/pages/transaction_history_page.dart';
 import '../../presentation/pages/cart_page.dart';
 import 'package:pade_localfriendly_marketplace/data/models/product_model.dart';
+import '../presentation/features/seller/views/seller_registration_view.dart';
+import '../presentation/features/seller/views/seller_dashboard_view.dart';
 
 /// Named route constants used throughout the app.
 class AppRoutes {
@@ -23,6 +25,8 @@ class AppRoutes {
   static const String checkout = '/checkout';
   static const String product = '/product';
   static const String transaction = '/transaction';
+  static const String sellerRegistration = '/seller/register';
+  static const String sellerDashboard = '/seller/dashboard';
 }
 
 /// Centralized route generator.

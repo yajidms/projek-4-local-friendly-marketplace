@@ -38,11 +38,8 @@ Future<void> main() async {
 /// ════════════════════════════════════════════════════════
 /// APP TESTING — wraps BLoC providers + navigator
 /// ════════════════════════════════════════════════════════
-class PaDeTestApp extends StatelessWidget {
-  /// Repository produk yang sudah disiapkan (Hive)
-  final ProductRepository productRepository;
-
-  const PaDeTestApp({super.key, required this.productRepository});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
