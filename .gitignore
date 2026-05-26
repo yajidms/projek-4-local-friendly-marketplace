@@ -50,3 +50,5 @@ app.*.map.json
 
 # Local environment file (do not commit your real secrets)
 .env
+
+document

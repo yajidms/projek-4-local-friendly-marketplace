@@ -3,6 +3,7 @@ class Product {
   final String sellerId; // Reference to Seller
   final String name;
   final String description;
+  final String? specifications; // Spesifikasi / bahan produk (opsional)
   final double price;
   final int quantity; // Current stock
   final String category;
@@ -22,6 +23,7 @@ class Product {
     required this.sellerId,
     required this.name,
     required this.description,
+    this.specifications,
     required this.price,
     required this.quantity,
     required this.category,
@@ -57,6 +59,7 @@ class Product {
     String? sellerId,
     String? name,
     String? description,
+    Object? specifications = _sentinel,
     double? price,
     int? quantity,
     String? category,
@@ -76,6 +79,9 @@ class Product {
       sellerId: sellerId ?? this.sellerId,
       name: name ?? this.name,
       description: description ?? this.description,
+      specifications: specifications == _sentinel
+          ? this.specifications
+          : specifications as String?,
       price: price ?? this.price,
       quantity: quantity ?? this.quantity,
       category: category ?? this.category,
@@ -103,3 +109,6 @@ class Product {
   @override
   int get hashCode => id.hashCode ^ sellerId.hashCode;
 }
+
+/// Sentinel untuk membedakan "tidak diberikan" vs "null" pada copyWith
+const Object _sentinel = Object();

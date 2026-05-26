@@ -85,7 +85,7 @@ class _AuthPlaceholderPageState extends State<AuthPlaceholderPage> {
         _currentAuth = auth;
       });
 
-      Navigator.of(context).pushReplacementNamed(AppRoutes.main);
+      Navigator.of(context).pushReplacementNamed(AppRoutes.home);
     } catch (e) {
       if (!mounted) {
         return;
@@ -107,7 +107,7 @@ class _AuthPlaceholderPageState extends State<AuthPlaceholderPage> {
     if (!mounted) {
       return;
     }
-    Navigator.of(context).pushReplacementNamed(AppRoutes.main);
+    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
   }
 
   @override
@@ -304,7 +304,7 @@ class _AuthPlaceholderPageState extends State<AuthPlaceholderPage> {
                       ),
                       const SizedBox(height: 20),
                       FilledButton(
-                        onPressed: _isLoading ? null : _submit,
+                        onPressed: _submit,
                         style: FilledButton.styleFrom(
                           minimumSize: const Size.fromHeight(54),
                           shape: RoundedRectangleBorder(
