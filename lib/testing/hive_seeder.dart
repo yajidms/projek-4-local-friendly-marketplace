@@ -11,6 +11,7 @@
 
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../data/local/repositories/hive_product_repository.dart';
 import '../domain/entities/product.dart';
 import 'mock_repositories.dart';
 
@@ -22,22 +23,25 @@ const _kProductBox = 'products';
 /// [forceReseed] — jika true, hapus semua data lama sebelum seed ulang.
 /// Default false: hanya seed jika box kosong.
 Future<void> seedFakerDataToHive({bool forceReseed = false}) async {
-  // Buka box produk (auto-close dihandle oleh caller / main)
+  // Buka box produk
   final box = await Hive.openBox<Product>(_kProductBox);
 
-  // Skip hanya jika sudah ada 100+ produk faker — jika kurang (misal data lama),
-  // tetap seed ulang agar data selalu lengkap
-  if (!forceReseed && box.length >= 100) {
+  // Hitung produk yang benar-benar milik seller utama
+  final mainSellerCount =
+      box.values.where((p) => p.sellerId == kMainSellerId).length;
+
+  // Skip hanya jika sudah ada 100+ produk dengan sellerId yang benar
+  if (!forceReseed && mainSellerCount >= 100) {
     debugPrint(
-        '[HiveSeeder] Box "$_kProductBox" sudah berisi ${box.length} produk faker. Skip seed.');
+        '[HiveSeeder] Sudah ada $mainSellerCount produk untuk "$kMainSellerId". Skip seed.');
     return;
   }
 
-  // Bersihkan data lama (termasuk data hardcoded 5-6 produk dari versi sebelumnya)
+  // Bersihkan semua data lama (bisa dari ID yang berbeda / versi lama)
   if (box.isNotEmpty) {
     await box.clear();
     debugPrint(
-        '[HiveSeeder] Data lama (${box.length} record) dihapus, seed ulang dengan faker...');
+        '[HiveSeeder] Data lama dihapus (hanya $mainSellerCount produk valid). Seed ulang...');
   }
 
   // Ambil data dari getter publik faker (lazy singleton dari mock_repositories)

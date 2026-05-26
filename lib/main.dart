@@ -63,13 +63,13 @@ class PaDeTestApp extends StatelessWidget {
         BlocProvider<ProductBloc>(
           create: (_) => ProductBloc(
             productRepository: productRepository,
-          )..add(MuatProdukPenjual(sellerId: generatedSellers.first.id)),
+          )..add(MuatProdukPenjual(sellerId: kMainSellerId)),
         ),
         // Provider TransactionBloc dengan mock repository + langsung load
         BlocProvider<TransactionBloc>(
           create: (_) => TransactionBloc(
             orderRepository: MockOrderRepository(),
-          )..add(MuatTransaksiPenjual(sellerId: generatedSellers.first.id)),
+          )..add(MuatTransaksiPenjual(sellerId: kMainSellerId)),
         ),
       ],
       child: MaterialApp(

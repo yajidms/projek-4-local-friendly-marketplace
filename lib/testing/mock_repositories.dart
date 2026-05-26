@@ -385,7 +385,7 @@ List<Seller> _buildSellers() {
           // Rating antara 3.5 dan 5.0: (35..50) / 10
           (_rng.integer(50, min: 35) / 10.0).toStringAsFixed(1)),
       totalReviews: _rng.integer(250, min: 5),
-      totalProducts: 10, // 10 produk per seller
+      totalProducts: 100, // 100 produk milik seller utama (sellers[0])
       isVerified: _rng.boolean(),
       isActive: true,
       isOnline: _rng.boolean(),
@@ -396,47 +396,43 @@ List<Seller> _buildSellers() {
   });
 }
 
-// ── Builder: 100 Products (10 per seller) ───────────────────────────────────
+// ── Builder: 100 Products untuk 1 Seller Utama (sellers[0]) ────────────────
 
 List<Product> _buildProducts(List<Seller> sellers) {
   final products = <Product>[];
+  // Semua 100 produk milik sellers[0] — seller utama yang ditampilkan di dashboard
+  final mainSeller = sellers.first;
   // Acak urutan katalog produk agar tiap run tidak identik
   final shuffledKatalog = List.of(_katalogProduk)..shuffle();
 
-  for (int s = 0; s < sellers.length; s++) {
-    final seller = sellers[s];
-    for (int p = 0; p < 10; p++) {
-      final globalIdx = (s * 10 + p) % shuffledKatalog.length;
-      final katalog = shuffledKatalog[globalIdx];
-      final namaProduct = katalog[0];
-      final kategori = katalog[1];
-      final stok = _stok();
-      final prodId =
-          'prod-${(s + 1).toString().padLeft(2, '0')}-${(p + 1).toString().padLeft(2, '0')}';
-      // Tanggal produk ditambahkan setelah toko daftar
-      final tglProduk = seller.createdAt
-          .add(Duration(days: _rng.integer(300, min: 1)));
+  for (int p = 0; p < 100; p++) {
+    final katalog = shuffledKatalog[p % shuffledKatalog.length];
+    final namaProduct = katalog[0];
+    final kategori = katalog[1];
+    final stok = _stok();
+    final prodId = 'prod-${(p + 1).toString().padLeft(3, '0')}';
+    // Tanggal produk ditambahkan setelah toko daftar
+    final tglProduk = mainSeller.createdAt
+        .add(Duration(days: _rng.integer(300, min: 1)));
 
-      products.add(Product(
-        id: prodId,
-        sellerId: seller.id,
-        name: namaProduct,
-        description: _pick(_deskripsiProduk),
-        price: _harga(kategori),
-        quantity: stok,
-        category: kategori,
-        // Produk tidak tersedia jika stok habis
-        isAvailable: stok > 0,
-        sku: 'SKU-${_rng.integer(99999, min: 10000)}',
-        weight: (_rng.integer(5000, min: 50)).toDouble(),
-        unit: _pick(['pcs', 'kg', 'liter', 'pak', 'karton', 'lusin']),
-        createdAt: tglProduk,
-        updatedAt:
-            tglProduk.add(Duration(days: _rng.integer(60))),
-        isSynced: _rng.boolean(),
-        isLocalOnly: false,
-      ));
-    }
+    products.add(Product(
+      id: prodId,
+      sellerId: mainSeller.id,   // ← semua produk milik seller utama
+      name: namaProduct,
+      description: _pick(_deskripsiProduk),
+      price: _harga(kategori),
+      quantity: stok,
+      category: kategori,
+      // Produk tidak tersedia jika stok habis
+      isAvailable: stok > 0,
+      sku: 'SKU-${_rng.integer(99999, min: 10000)}',
+      weight: (_rng.integer(5000, min: 50)).toDouble(),
+      unit: _pick(['pcs', 'kg', 'liter', 'pak', 'karton', 'lusin']),
+      createdAt: tglProduk,
+      updatedAt: tglProduk.add(Duration(days: _rng.integer(60))),
+      isSynced: _rng.boolean(),
+      isLocalOnly: false,
+    ));
   }
   return products;
 }
