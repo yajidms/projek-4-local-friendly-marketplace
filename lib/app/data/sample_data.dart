@@ -1,34 +1,42 @@
+import 'dart:math';
+import 'package:faker/faker.dart';
 import 'package:pade_localfriendly_marketplace/data/models/product_model.dart';
 
-final List<ProductModel> sampleProducts = [
-  ProductModel(
-    id: '1', sellerId: 'seller_1', name: 'Beras Premium 5kg', description: 'Beras premium kualitas terbaik untuk keluarga.', price: 75000, quantity: 50, category: 'Sembako', createdAt: DateTime.now(), updatedAt: DateTime.now(),
-  ),
-  ProductModel(
-    id: '2', sellerId: 'seller_1', name: 'Minyak Goreng 2L', description: 'Minyak goreng sawit jernih.', price: 32000, quantity: 30, category: 'Sembako', createdAt: DateTime.now(), updatedAt: DateTime.now(),
-  ),
-  ProductModel(
-    id: '3', sellerId: 'seller_2', name: 'Kaos Polos Cotton', description: 'Kaos katun halus dan menyerap keringat.', price: 45000, quantity: 20, category: 'Fashion', createdAt: DateTime.now(), updatedAt: DateTime.now(),
-  ),
-  ProductModel(
-    id: '4', sellerId: 'seller_2', name: 'Celana Jeans', description: 'Celana jeans denim tebal dan awet.', price: 120000, quantity: 15, category: 'Fashion', createdAt: DateTime.now(), updatedAt: DateTime.now(),
-  ),
-  ProductModel(
-    id: '5', sellerId: 'seller_3', name: 'Charger HP Universal', description: 'Charger fast charging untuk semua tipe HP.', price: 55000, quantity: 10, category: 'Elektronik', createdAt: DateTime.now(), updatedAt: DateTime.now(),
-  ),
-  ProductModel(
-    id: '6', sellerId: 'seller_3', name: 'Earphone Bluetooth', description: 'Earphone wireless dengan suara jernih.', price: 89000, quantity: 8, category: 'Elektronik', createdAt: DateTime.now(), updatedAt: DateTime.now(),
-  ),
-  ProductModel(
-    id: '7', sellerId: 'seller_4', name: 'Sayur Bayam Segar', description: 'Bayam segar langsung dari petani lokal.', price: 5000, quantity: 100, category: 'Sayuran', createdAt: DateTime.now(), updatedAt: DateTime.now(),
-  ),
-  ProductModel(
-    id: '8', sellerId: 'seller_4', name: 'Tomat 1kg', description: 'Tomat merah segar cocok untuk masakan dan jus.', price: 12000, quantity: 80, category: 'Sayuran', createdAt: DateTime.now(), updatedAt: DateTime.now(),
-  ),
-  ProductModel(
-    id: '9', sellerId: 'seller_5', name: 'Sabun Mandi', description: 'Sabun mandi anti bakteri dan wangi seharian.', price: 8500, quantity: 60, category: 'Kebutuhan Rumah', createdAt: DateTime.now(), updatedAt: DateTime.now(),
-  ),
-  ProductModel(
-    id: '10', sellerId: 'seller_5', name: 'Detergen 1kg', description: 'Detergen bubuk ampuh angkat noda membandel.', price: 18000, quantity: 45, category: 'Kebutuhan Rumah', createdAt: DateTime.now(), updatedAt: DateTime.now(),
-  ),
-];
+// Fungsi untuk mencetak data dummy secara masif
+List<ProductModel> generateFakeProducts(int jumlahData) {
+  final faker = Faker();
+  final random = Random();
+  final List<ProductModel> products = [];
+
+  // Kategori sesuai desain kita
+  final categories = ['Sembako', 'Sayuran', 'Elektronik', 'Fashion', 'Kebutuhan Rumah'];
+  
+  // Wajib pakai 5 seller ini agar koordinat & nama toko di app_router.dart tetap jalan!
+  final sellerIds = ['seller_1', 'seller_2', 'seller_3', 'seller_4', 'seller_5'];
+
+  for (var i = 0; i < jumlahData; i++) {
+    // Kombinasi kata sifat dan benda biar nama produknya unik
+    final adjective = faker.lorem.word();
+    final noun = faker.lorem.word();
+    final productName = '${adjective[0].toUpperCase()}${adjective.substring(1)} ${noun[0].toUpperCase()}${noun.substring(1)}';
+
+    products.add(
+      ProductModel(
+        id: faker.guid.guid(),
+        sellerId: sellerIds[random.nextInt(sellerIds.length)],
+        name: productName, 
+        description: faker.lorem.sentences(2).join(' '), // Deskripsi panjang
+        price: (random.nextInt(200) + 5) * 1000.0, // Harga acak Rp 5.000 - Rp 204.000
+        quantity: random.nextInt(100) + 1, // Stok/jumlah satuan acak 1 - 100
+        category: categories[random.nextInt(categories.length)],
+        createdAt: DateTime.now().subtract(Duration(days: random.nextInt(30))), // Dibuat 0-30 hari yg lalu
+        updatedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  return products;
+}
+
+
+final List<ProductModel> sampleProducts = generateFakeProducts(100);
