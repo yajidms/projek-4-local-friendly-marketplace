@@ -340,6 +340,14 @@ final List<Product> _generatedProducts = _buildProducts(_generatedSellers);
 final List<Order> _generatedOrders =
     _buildOrders(_generatedSellers, _generatedProducts);
 
+// ── Public accessor (untuk seeder & main) ───────────────────────────────────
+
+/// Semua seller yang digenerate faker — diakses dari main.dart & hive_seeder
+List<Seller> get generatedSellers => _generatedSellers;
+
+/// Semua produk yang digenerate faker — diakses dari hive_seeder
+List<Product> get generatedProducts => _generatedProducts;
+
 // ── Builder: 10 Sellers ──────────────────────────────────────────────────────
 
 List<Seller> _buildSellers() {

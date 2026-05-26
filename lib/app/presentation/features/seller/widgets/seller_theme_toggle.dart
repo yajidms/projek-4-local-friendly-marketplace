@@ -60,55 +60,62 @@ class SellerThemeToggle extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // ── Label kiri ────────────────────────────────────────────
-                Row(
-                  children: [
-                    AnimatedSwitcher(
-                      duration: SellerTheme.animationDuration,
-                      child: Icon(
-                        isDark
-                            ? Icons.dark_mode_rounded
-                            : Icons.light_mode_rounded,
-                        key: ValueKey(isDark),
-                        color: isDark
-                            ? SellerTheme.neonGreen
-                            : const Color(0xFF1B5E20),
-                        size: 26,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isDark ? 'MODE GELAP' : 'MODE TERANG',
-                          style: TextStyle(
-                            color: isDark
-                                ? SellerTheme.neonGreen
-                                : const Color(0xFF1B5E20),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
+                // ── Label kiri — dibungkus Expanded agar tidak overflow ──
+                Expanded(
+                  child: Row(
+                    children: [
+                      AnimatedSwitcher(
+                        duration: SellerTheme.animationDuration,
+                        child: Icon(
                           isDark
-                              ? 'Tampilan gelap Northern Lights'
-                              : 'Tampilan terang & segar',
-                          style: TextStyle(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.45)
-                                : const Color(0xFF4A6741),
-                            fontSize: 11,
-                          ),
+                              ? Icons.dark_mode_rounded
+                              : Icons.light_mode_rounded,
+                          key: ValueKey(isDark),
+                          color: isDark
+                              ? SellerTheme.neonGreen
+                              : const Color(0xFF1B5E20),
+                          size: 26,
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isDark ? 'MODE GELAP' : 'MODE TERANG',
+                              style: TextStyle(
+                                color: isDark
+                                    ? SellerTheme.neonGreen
+                                    : const Color(0xFF1B5E20),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.5,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              isDark
+                                  ? 'Tampilan gelap Northern Lights'
+                                  : 'Tampilan terang & segar',
+                              style: TextStyle(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.45)
+                                    : const Color(0xFF4A6741),
+                                fontSize: 11,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
 
-                // ── Pill toggle ───────────────────────────────────────────
+                // ── Pill toggle — lebar tetap, tidak terpengaruh overflow ──
+                const SizedBox(width: 12),
                 _PillToggle(isDark: isDark),
               ],
             ),

@@ -17,6 +17,7 @@ import 'app/theme/seller_theme.dart';
 import 'data/local/hive_init.dart';
 import 'data/local/repositories/hive_product_repository.dart';
 import 'domain/repositories/product_repository.dart';
+import 'testing/hive_seeder.dart';
 import 'testing/mock_repositories.dart';
 
 
@@ -29,10 +30,13 @@ Future<void> main() async {
   // 2. Inisialisasi Hive (register adapter)
   await initHive();
 
-  // 3. Buka Hive box & siapkan ProductRepository (seed otomatis jika kosong)
+  // 3. Seed data faker (100 produk) ke Hive — skip otomatis jika sudah ada
+  await seedFakerDataToHive();
+
+  // 4. Buka Hive box & siapkan ProductRepository
   final ProductRepository productRepo = await HiveProductRepository.open();
 
-  // 4. Jalankan app dengan repo yang sudah siap
+  // 5. Jalankan app dengan repo yang sudah siap
   runApp(PaDeTestApp(productRepository: productRepo));
 }
 
@@ -59,13 +63,13 @@ class PaDeTestApp extends StatelessWidget {
         BlocProvider<ProductBloc>(
           create: (_) => ProductBloc(
             productRepository: productRepository,
-          )..add(MuatProdukPenjual(sellerId: 'mock-seller-001')),
+          )..add(MuatProdukPenjual(sellerId: generatedSellers.first.id)),
         ),
         // Provider TransactionBloc dengan mock repository + langsung load
         BlocProvider<TransactionBloc>(
           create: (_) => TransactionBloc(
             orderRepository: MockOrderRepository(),
-          )..add(MuatTransaksiPenjual(sellerId: 'mock-seller-001')),
+          )..add(MuatTransaksiPenjual(sellerId: generatedSellers.first.id)),
         ),
       ],
       child: MaterialApp(
