@@ -1,0 +1,26 @@
+// lib/app/presentation/features/seller/index.dart
+//
+// Barrel file — ekspor semua public API dari Seller feature.
+// Import cukup satu baris: import '.../features/seller/index.dart';
+
+// BLoC
+export 'bloc/product_bloc.dart';
+export 'bloc/seller_registration_bloc.dart';
+export 'bloc/transaction_bloc.dart';
+
+// Views
+export 'views/invoice_view.dart';
+export 'views/inventory_view.dart';
+export 'views/product_detail_view.dart';
+export 'views/product_form_view.dart';
+export 'views/product_list_view.dart';
+export 'views/seller_dashboard_view.dart';
+export 'views/seller_registration_view.dart';
+export 'views/seller_settings_view.dart';
+export 'views/transaction_list_view.dart';
+
+// Widgets
+export 'widgets/dashboard_stat_card.dart';
+export 'widgets/image_picker_box.dart';
+export 'widgets/seller_nav_drawer.dart';
+export 'widgets/seller_theme_toggle.dart';

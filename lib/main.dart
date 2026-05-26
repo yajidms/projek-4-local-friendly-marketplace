@@ -1,3 +1,9 @@
+// lib/main.dart
+//
+// ⚠️ MODE TESTING — Main diubah sementara untuk test Seller Module.
+// Untuk restore ke versi asli, uncomment bagian "ORIGINAL" dan hapus
+// bagian "TESTING" di bawah ini.
+
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'config/env.dart';
@@ -29,8 +35,14 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+/// ════════════════════════════════════════════════════════
+/// APP TESTING — wraps BLoC providers + navigator
+/// ════════════════════════════════════════════════════════
+class PaDeTestApp extends StatelessWidget {
+  /// Repository produk yang sudah disiapkan (Hive)
+  final ProductRepository productRepository;
+
+  const PaDeTestApp({super.key, required this.productRepository});
 
   @override
   Widget build(BuildContext context) {

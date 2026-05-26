@@ -1,3 +1,5 @@
+// File: lib/app/routes/app_router.dart
+
 import 'package:flutter/material.dart';
 
 import '../pages/auth_placeholder_page.dart';
@@ -10,7 +12,9 @@ import '../../presentation/pages/transaction_history_page.dart';
 import '../../presentation/pages/cart_page.dart';
 import 'package:pade_localfriendly_marketplace/data/models/product_model.dart';
 
+/// Named route constants used throughout the app.
 class AppRoutes {
+  // ── Master branch routes ──────────────────────────────────────
   static const String auth = '/auth';
   static const String home = '/home'; 
   static const String profile = '/profile';
@@ -21,6 +25,9 @@ class AppRoutes {
   static const String transaction = '/transaction';
 }
 
+/// Centralized route generator.
+/// BLoC provision is handled via MultiBlocProvider at the MaterialApp level
+/// in main.dart for production; here we wrap per-route for standalone use.
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -63,6 +70,38 @@ class AppRouter {
           builder: (_) => const TransactionHistoryPage(),
           settings: settings,
         );
+
+      // ── Seller routes ─────────────────────────────────────────
+      case AppRoutes.sellerRegistration:
+        return PageRouteBuilder<void>(
+          settings: settings,
+          pageBuilder: (_, a, __) => const SellerRegistrationView(),
+          // NFR-ATR-03: Slide-up ≤ 300ms
+          transitionsBuilder: (_, a, __, child) => SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 1),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: a,
+              curve: Curves.easeInOut,
+            )),
+            child: child,
+          ),
+          transitionDuration: const Duration(milliseconds: 300),
+        );
+
+      case AppRoutes.sellerDashboard:
+        return PageRouteBuilder<void>(
+          settings: settings,
+          pageBuilder: (_, a, __) => const SellerDashboardView(),
+          transitionsBuilder: (_, a, __, child) => FadeTransition(
+            opacity: CurvedAnimation(parent: a, curve: Curves.easeInOut),
+            child: child,
+          ),
+          transitionDuration: const Duration(milliseconds: 300),
+        );
+
+      // ── Default: auth ─────────────────────────────────────────
       case AppRoutes.auth:
       default:
         return MaterialPageRoute<void>(
