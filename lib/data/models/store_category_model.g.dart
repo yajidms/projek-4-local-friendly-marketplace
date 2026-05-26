@@ -1,5 +1,3 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
-
 part of 'store_category_model.dart';
 
 // **************************************************************************
