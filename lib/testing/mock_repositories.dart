@@ -104,13 +104,12 @@ const _katalogProduk = [
   ['Bawang Putih 1kg', 'Sembako'],
   ['Tahu Putih 1/2kg', 'Sembako'],
   ['Tempe Segitiga 1 papan', 'Sembako'],
-  ['Tepung Terigu Segitiga Biru 1kg', 'Sembako']
-  ['Tepung Kanji 500gr','Sembako']
-  ['Tahu Cibuntu 1/2kg','Sembako']
-  ['Tempe Cibuntu 1/2kg','Sembako']
-  ['Kulit Tahu 500gr','Sembako']
-  ['Tahu Kuning 1/2kg','Sembako']
-  
+  ['Tepung Terigu Segitiga Biru 1kg', 'Sembako'],
+  ['Tepung Kanji 500gr', 'Sembako'],
+  ['Tahu Cibuntu 1/2kg', 'Sembako'],
+  ['Tempe Cibuntu 1/2kg', 'Sembako'],
+  ['Kulit Tahu 500gr', 'Sembako'],
+  ['Tahu Kuning 1/2kg', 'Sembako'],
 
   // Makanan
   ['Roti Tawar Sari Roti', 'Makanan'],
@@ -125,9 +124,9 @@ const _katalogProduk = [
   ['Keripik Kentang Kanzler 180g', 'Makanan'],
   ['Indomie Goreng Jumbo 1 pcs', 'Makanan'],
   ['Biskuit Roma Kelapa', 'Makanan'],
-  ['Sardines Botan 155g','Makanan']
-  ['Mie Sedaap Goreng 1 pcs','Makanan']
-  
+  ['Sardines Botan 155g', 'Makanan'],
+  ['Mie Sedaap Goreng 1 pcs', 'Makanan'],
+
   // Minuman
   ['Teh Celup Sosro (kotak)', 'Minuman'],
   ['Air Mineral Aqua 600ml', 'Minuman'],
@@ -145,7 +144,6 @@ const _katalogProduk = [
   ['Air Mineral Prim-a 600ml', 'Minuman'],
   ['Air Le Minerale 600ml', 'Minuman'],
   ['Air Le Minerale 200ml', 'Minuman'],
-  ['Air Mineral Aqua 600ml', 'Minuman'],
   ['Air Mineral Aqua 200ml', 'Minuman'],
   ['Nipis Madu 500ml', 'Minuman'],
   ['Cimory Yogurt 200ml', 'Minuman'],
@@ -155,21 +153,12 @@ const _katalogProduk = [
   ['Marimas 100g', 'Minuman'],
   ['Nutrisari 500g', 'Minuman'],
   ['Teh Poci 200g', 'Minuman'],
-  ['Kopi Torabika 200g', 'Minuman'],
   ['Kopi Kapal Api 200g', 'Minuman'],
   ['Kopi Luwak 200g', 'Minuman'],
   ['Kopi Instan 200g', 'Minuman'],
-  ['Kopi Creamer 200g', 'Minuman'],
-  ['Kopi Gula 200g', 'Minuman'],
-  ['Kopi Susu 200g', 'Minuman'],
   ['Kopi Susu Instan 200g', 'Minuman'],
-  ['Kopi Susu Creamer 200g', 'Minuman'],
-  ['Kopi Susu Gula 200g', 'Minuman'],
-  ['Kopi Susu Gula Instan 200g', 'Minuman'],
-  ['Kopi Susu Gula Creamer 200g', 'Minuman'],
-  ['Kopi Susu Gula Creamer Instan 200g', 'Minuman'],
-  
-  // Snack
+
+  // Snack & Camilan
   ['Chitato Sapi Panggang 68g', 'Snack & Camilan'],
   ['Biscuit Roma Marie 250g', 'Snack & Camilan'],
   ['Wafer Tango 176g', 'Snack & Camilan'],
@@ -182,14 +171,6 @@ const _katalogProduk = [
   ['Kue Brownies 200g', 'Snack & Camilan'],
   ['Kue Bolu 200g', 'Snack & Camilan'],
   ['Kue Donat 200g', 'Snack & Camilan'],
-  ['Kue Sus 200g', 'Snack & Camilan'],
-  ['Kue Roti Sobek 200g', 'Snack & Camilan'],
-  ['Kue Roti Manis 200g', 'Snack & Camilan'],
-  ['Kue Roti Tawar 200g', 'Snack & Camilan'],
-  ['Kue Roti Gandum 200g', 'Snack & Camilan'],
-  ['Kue Roti Sobek Gandum 200g', 'Snack & Camilan'],
-  ['Kue Roti Manis Gandum 200g', 'Snack & Camilan'],
-  ['Kue Roti Tawar Gandum 200g', 'Snack & Camilan'],
   ['Lays 60g', 'Snack & Camilan'],
   ['Keripik Tempe 100g', 'Snack & Camilan'],
   ['Keripik Singkong 100g', 'Snack & Camilan'],
@@ -200,13 +181,9 @@ const _katalogProduk = [
   ['Piattos 60g', 'Snack & Camilan'],
   ['Pringles 150g', 'Snack & Camilan'],
   ['Qtela 60g', 'Snack & Camilan'],
-  ['Chacha 60g', 'Snack & Camilan'],
-  ['Wafer Tango 176g', 'Snack & Camilan'],
   ['Choco Pie 60g', 'Snack & Camilan'],
   ['Nabati Siip 60g', 'Snack & Camilan'],
   ['Kitkat 47g', 'Snack & Camilan'],
-  ['Happy Tos 60g', 'Snack & Camilan'],
-  ['Kraker 100g', 'Snack & Camilan'],
   ['Beng-Beng 50g', 'Snack & Camilan'],
   ['Sari Gandum 130g', 'Snack & Camilan'],
 
@@ -218,75 +195,60 @@ const _katalogProduk = [
   ['Pewangi Pakaian Molto 800ml', 'Kebersihan'],
   ['Pembalut Softex 10pcs', 'Kebersihan'],
   ['Sabun Detol Bar 100g', 'Kebersihan'],
-  ['Shampo Lifebouy 100ml', 'Kebersihan'],
+  ['Shampo Lifebuoy 100ml', 'Kebersihan'],
   ['Sabun Mandi Nuvo 100g', 'Kebersihan'],
   ['Sabun Cuci Piring Mama Lemon 410ml', 'Kebersihan'],
   ['Pembersih Lantai Wipol 800ml', 'Kebersihan'],
-  ['Sabun antiseptic cair Detol 250ml', 'Kebersihan'],
-  ['Pembersih Lantai 123 800ml', 'Kebersihan'],
+  ['Sabun Antiseptik Cair Dettol 250ml', 'Kebersihan'],
   ['Shampo Emeron 170ml', 'Kebersihan'],
   ['Shampo Pantene 170ml', 'Kebersihan'],
   ['Pasta Gigi Pepsodent 190g', 'Kebersihan'],
   ['Sikat Gigi Pepsodent', 'Kebersihan'],
   ['Shampo Sunsilk 170ml', 'Kebersihan'],
-  ['Shampo Makarizo 170ml', 'Kebersihan'],
-  ['Shampo Rejoice 170ml', 'Kebersihan'],
   ['Shampo Clear 170ml', 'Kebersihan'],
-  
-  // Kesehatan
+
+  // Kesehatan & Kecantikan
   ['Vitamin C 500mg (strip)', 'Kesehatan & Kecantikan'],
   ['Masker Medis 3 ply (kotak)', 'Kesehatan & Kecantikan'],
   ['Minyak Kayu Putih Cap Lang 120ml', 'Kesehatan & Kecantikan'],
   ['Betadine 30ml', 'Kesehatan & Kecantikan'],
-  ['Metformin 500mg 10 pcs', 'Kesehatan & Kecantikan'],
-  ['Amoxicillin 500mg 10 pcs', 'Kesehatan & Kecantikan'],
   ['Paracetamol 500mg 10 pcs', 'Kesehatan & Kecantikan'],
-  ['Cataflam 25mg 10 pcs', 'Kesehatan & Kecantikan'],
-  ['Cataflam 50mg 10 pcs', 'Kesehatan & Kecantikan'],
-  ['Cataflam 100mg 10 pcs', 'Kesehatan & Kecantikan'],
   ['Paramex 10 pcs', 'Kesehatan & Kecantikan'],
-  ['Obat Flu & BatukWoods 10 pcs', 'Kesehatan & Kecantikan'],
-  ['Obat Flu & BatukKomix 10 pcs', 'Kesehatan & Kecantikan'],
-  ['Obat MigrainPanadol Extra 10 pcs', 'Kesehatan & Kecantikan'],
-  ['Obat MigrainPeredam Sakit Kepala 10 pcs', 'Kesehatan & Kecantikan'],
+  ['Obat Flu & Batuk Woods 10 pcs', 'Kesehatan & Kecantikan'],
   ['Minyak Zaitun 100ml', 'Kesehatan & Kecantikan'],
   ['Minyak Zaitun 250ml', 'Kesehatan & Kecantikan'],
   ['Fair and Lovely 100g', 'Kesehatan & Kecantikan'],
   ['Ponds 100g', 'Kesehatan & Kecantikan'],
   ['Vaseline 100g', 'Kesehatan & Kecantikan'],
-  ['Minyak Kayu Putih Cap Lang 120ml', 'Kesehatan & Kecantikan'],
   ['Minyak Kayu Putih Cap Kapak 60ml', 'Kesehatan & Kecantikan'],
   ['Geliga Otot 200ml', 'Kesehatan & Kecantikan'],
   ['Krim Anti Nyamuk Soffell 100ml', 'Kesehatan & Kecantikan'],
-  ['Promag 200ml', 'Kesehatan & Kecantikan']
-  ['Curcuma 100ml', 'Kesehatan & Kecantikan']
+  ['Promag 200ml', 'Kesehatan & Kecantikan'],
+  ['Curcuma 100ml', 'Kesehatan & Kecantikan'],
   ['Madu TJ 100ml', 'Kesehatan & Kecantikan'],
-  
-  // Bumbu
+
+  // Bumbu Masak
   ['Bumbu Nasi Goreng Sajiku', 'Bumbu Masak'],
   ['Santan Kara 200ml', 'Bumbu Masak'],
   ['Merica Bubuk 50g', 'Bumbu Masak'],
   ['Bawang Goreng Bawang Mas 100g', 'Bumbu Masak'],
   ['Terasi Udang 50g', 'Bumbu Masak'],
   ['Kunyit Bubuk 50g', 'Bumbu Masak'],
-  ['Kecap ABC Botol Kecil','Bumbu Masak']
-  ['Kecap Bango Botol Kecil','Bumbu Masak']
+  ['Kecap ABC Botol Kecil', 'Bumbu Masak'],
+  ['Kecap Bango Botol Kecil', 'Bumbu Masak'],
   ['Sasa Tepung Bumbu 200g', 'Bumbu Masak'],
-  ['Totole Kaldu Jamur 80g', 'Bumbu Masak']
-  ['Royco Bumbu Instan 20g', 'Bumbu Masak']
-  ['Masako Kaldu Bubuk 20g', 'Bumbu Masak']
-  ['Garam Refina 200g', 'Bumbu Masak']
-  ['Gula Pasir Premium 1kg', 'Bumbu Masak']
-  ['MSG Sasa 200g', 'Bumbu Masak']
-  ['Ladaku Merica Bubuk 20g', 'Bumbu Masak']
-  ['Desaku Bumbu Nasi Goreng 20g', 'Bumbu Masak']
-  ['Sasa Santan 200ml', 'Bumbu Masak']
-  ['Indofood Kecap Manis 550ml', 'Bumbu Masak']
-  ['Vanilli bubuk 10g', 'Bumbu Masak']
-  ['Nutrijell 100g', 'Bumbu Masak']
-  ['Agar agar Swallow 100g', 'Bumbu Masak']
-  
-  
+  ['Totole Kaldu Jamur 80g', 'Bumbu Masak'],
+  ['Royco Bumbu Instan 20g', 'Bumbu Masak'],
+  ['Masako Kaldu Bubuk 20g', 'Bumbu Masak'],
+  ['Garam Refina 200g', 'Bumbu Masak'],
+  ['Gula Pasir Premium 1kg', 'Bumbu Masak'],
+  ['MSG Sasa 200g', 'Bumbu Masak'],
+  ['Ladaku Merica Bubuk 20g', 'Bumbu Masak'],
+  ['Sasa Santan 200ml', 'Bumbu Masak'],
+  ['Indofood Kecap Manis 550ml', 'Bumbu Masak'],
+  ['Vanilli Bubuk 10g', 'Bumbu Masak'],
+  ['Nutrijell 100g', 'Bumbu Masak'],
+  ['Agar-Agar Swallow 100g', 'Bumbu Masak'],
 ];
 
 /// Harga dalam range realistis per kategori (min, max) dalam Rupiah
