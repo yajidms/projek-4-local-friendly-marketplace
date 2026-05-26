@@ -1,151 +1,71 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart'; // <-- Pastikan import hive_flutter
 import '../widgets/bottom_nav_bar.dart';
 
-class TransactionHistoryPage extends StatelessWidget {
+class TransactionHistoryPage extends StatefulWidget {
   const TransactionHistoryPage({super.key});
 
-  void _showReviewBottomSheet(BuildContext context, String transactionId, {String? existingReview, int existingRating = 0}) {
-    final reviewController = TextEditingController(text: existingReview);
-    int currentRating = existingRating;
+  @override
+  State<TransactionHistoryPage> createState() => _TransactionHistoryPageState();
+}
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true, 
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-                left: 16,
-                right: 16,
-                top: 24,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    existingReview == null ? 'Beri Ulasan' : 'Edit Ulasan',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Bintang Rating (1-5)
-                  Center(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(5, (index) {
-                        return IconButton(
-                          icon: Icon(
-                            index < currentRating ? Icons.star_rounded : Icons.star_outline_rounded,
-                            color: index < currentRating ? Colors.amber : Colors.grey,
-                            size: 40,
-                          ),
-                          onPressed: () {
-                            setModalState(() {
-                              currentRating = index + 1;
-                            });
-                          },
-                        );
-                      }),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
+  // Mock List Transaksi yang bervariasi sesuai alur status di SRS (FR-030)
+  final List<Map<String, dynamic>> _mockTransactions = [
+    {
+      'id': 'TRX-20260525-01',
+      'productName': 'Beras Premium 5kg',
+      'storeName': 'Toko Sembako Pak Budi',
+      'quantity': 1,
+      'totalPrice': 75000,
+      'status': 'Menunggu Verifikasi', // Status awal setelah checkout (FR-029)
+      'date': '25 Mei 2026',
+    },
+    {
+      'id': 'TRX-20260524-02',
+      'productName': 'Minyak Goreng 2L',
+      'storeName': 'Toko Sembako Pak Budi',
+      'quantity': 2,
+      'totalPrice': 64000,
+      'status': 'Diproses', // Status setelah dikonfirmasi Seller (FR-032)
+      'date': '24 Mei 2026',
+    },
+    {
+      'id': 'TRX-20260520-03',
+      'productName': 'Kaos Polos Cotton',
+      'storeName': 'Warung Bu Siti',
+      'quantity': 3,
+      'totalPrice': 135000,
+      'status': 'Selesai', // Status akhir transaksi sukses
+      'date': '20 Mei 2026',
+    },
+  ];
 
-                  // Kolom Komentar
-                  TextField(
-                    controller: reviewController,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      hintText: 'Ceritain pengalaman kamu beli produk ini...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.green, width: 2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Tombol Kirim
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () {
-                        if (currentRating == 0) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Kasih bintangnya dulu dong! ⭐')),
-                          );
-                          return;
-                        }
-
-                        // [CREATE & UPDATE LOGIC] Simpan data ke Hive
-                        final box = Hive.box('reviews');
-                        box.put(transactionId, {
-                          'rating': currentRating,
-                          'comment': reviewController.text,
-                        });
-                        
-                        Navigator.pop(context); 
-                        
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            backgroundColor: Colors.green,
-                            content: Text(existingReview == null 
-                                ? 'Ulasan berhasil dikirim (Tersimpan di Lokal)!' 
-                                : 'Ulasan berhasil diperbarui!'),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'Kirim Ulasan',
-                        style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
-              ),
-            );
-          }
-        );
-      },
-    );
+  String _formatPrice(double price) {
+    return 'Rp ${price.toStringAsFixed(0).replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]}.',
+    )}';
   }
 
-  // ==========================================
-  // LOGIKA UTAMA: DELETE (HAPUS DATA)
-  // ==========================================
-  void _deleteReview(BuildContext context, String transactionId) {
-    final box = Hive.box('reviews');
-    box.delete(transactionId);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        backgroundColor: Colors.redAccent,
-        content: Text('Ulasan berhasil dihapus!'),
-      ),
-    );
+  // Menentukan warna badge berdasarkan aturan status pesanan di SRS
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Menunggu Verifikasi':
+        return Colors.orange;
+      case 'Diproses':
+        return Colors.blue;
+      case 'Siap Diambil':
+        return Colors.purple;
+      case 'Selesai':
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final reviewBox = Hive.box('reviews'); // Ambil referensi Box Hive
 
     return Scaffold(
       appBar: AppBar(
@@ -153,177 +73,172 @@ class TransactionHistoryPage extends StatelessWidget {
         backgroundColor: Colors.green,
         title: const Text('Riwayat Transaksi', style: TextStyle(color: Colors.white)),
       ),
-      body: Column(
-        children: [
-          // Filter status & tanggal
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest, 
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(children: [
-                    Text('Semua Status', style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface)), 
-                    Icon(Icons.arrow_drop_down, size: 16, color: theme.colorScheme.onSurface), 
-                  ]),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest, 
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(children: [
-                    Text('Semua Tanggal', style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface)), 
-                    Icon(Icons.arrow_drop_down, size: 16, color: theme.colorScheme.onSurface), 
-                  ]),
-                ),
-              ],
-            ),
-          ),
-          
-          // List Riwayat Transaksi
-          Expanded(
-            // [READ LOGIC] Bungkus panyunting dengan ValueListenableBuilder milik Hive
-            child: ValueListenableBuilder(
-              valueListenable: reviewBox.listenable(),
-              builder: (context, Box box, _) {
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: 3, // Dummy 3 transaksi
-                  itemBuilder: (context, index) {
-                    // Kita buat ID Transaksi unik bayangan berdasarkan indeks-nya
-                    final String transactionId = 'tx_00$index';
-                    
-                    // Cek apakah transaksi ini sudah punya ulasan di Hive
-                    final hasReview = box.containsKey(transactionId);
-                    final reviewData = hasReview ? Map<String, dynamic>.from(box.get(transactionId)) : null;
+      body: _mockTransactions.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.history_toggle_off, size: 64, color: theme.hintColor),
+                  const SizedBox(height: 16),
+                  Text('Belum ada riwayat transaksi', style: TextStyle(color: theme.hintColor)),
+                ],
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _mockTransactions.length,
+              itemBuilder: (context, index) {
+                final trx = _mockTransactions[index];
+                final statusColor = _getStatusColor(trx['status']);
 
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest, 
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 50, height: 50,
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.outlineVariant, 
-                                  borderRadius: BorderRadius.circular(8),
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ID Transaksi & Status Badge
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              trx['id'],
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: statusColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                              ),
+                              child: Text(
+                                trx['status'],
+                                style: TextStyle(
+                                  color: statusColor,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Nama Produk: blablablablablabla ($transactionId)',
-                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)), 
-                                    Text('Total Produk: 199',
-                                        style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface)), 
-                                    
-                                    // Tampilkan rating bintang kecil kalau ulasan sudah ada
-                                    if (hasReview) ...[
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
-                                          const SizedBox(width: 2),
-                                          Text(
-                                            '${reviewData?['rating']} · "${reviewData?['comment']}"',
-                                            style: const TextStyle(fontSize: 11, color: Colors.grey, fontStyle: FontStyle.italic),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          trx['date'],
+                          style: const TextStyle(fontSize: 11, color: Colors.grey),
+                        ),
+                        const Divider(height: 20),
+
+                        // Detail Item Konten
+                        Text(
+                          trx['productName'],
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            const Icon(Icons.storefront, size: 12, color: Colors.grey),
+                            const SizedBox(width: 4),
+                            Text(
+                              trx['storeName'],
+                              style: const TextStyle(color: Colors.grey, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Kuantitas (Satuan) & Total Harga
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Menggunakan terminologi "Satuan" sesuai ledger aturan modifikasi data kamu
+                            Text(
+                              '${trx['quantity']} Satuan',
+                              style: TextStyle(color: theme.hintColor, fontSize: 13),
+                            ),
+                            Text(
+                              _formatPrice(trx['totalPrice'].toDouble()),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // Blok Tombol Aksi Dinamis Kontekstual Sesuai State Use Case SRS
+                        if (trx['status'] == 'Menunggu Verifikasi' || trx['status'] == 'Selesai') ...[
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              // Jika pesanan baru dibuat, beri opsi upload bukti transfer (UC-003)
+                              if (trx['status'] == 'Menunggu Verifikasi')
+                                ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  ),
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Simulasi melengkapi/upload ulang bukti pembayaran (UC-003)...')),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.cloud_upload, size: 16),
+                                  label: const Text('Upload Bukti Bayar', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                                 ),
-                              )
+                              
+                              // Jika pesanan sudah beres, tampilkan fitur ulasan & pembelian ulang
+                              if (trx['status'] == 'Selesai') ...[
+                                OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.green,
+                                    side: const BorderSide(color: Colors.green),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Simulasi menuju halaman ulasan produk...')),
+                                    );
+                                  },
+                                  child: const Text('Beri Ulasan', style: TextStyle(fontSize: 12)),
+                                ),
+                                const SizedBox(width: 8),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Produk berhasil ditambahkan kembali ke keranjang belanja!')),
+                                    );
+                                  },
+                                  child: const Text('Beli Lagi', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                ),
+                              ],
                             ],
                           ),
-                          const Divider(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(16)),
-                                child: const Text('Selesai', style: TextStyle(color: Colors.white, fontSize: 10)),
-                              ),
-                              Row(
-                                children: [
-                                  // JIKA SUDAH ADA ULASAN, MUNCULKAN TOMBOL HAPUS (DELETE)
-                                  if (hasReview) ...[
-                                    IconButton(
-                                      icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 20),
-                                      onPressed: () => _deleteReview(context, transactionId),
-                                      constraints: const BoxConstraints(),
-                                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                                    ),
-                                  ],
-
-                                  // TOMBOL DINAMIS (BERI ULASAN / EDIT ULASAN)
-                                  OutlinedButton(
-                                    onPressed: () {
-                                      if (hasReview) {
-                                        // UPDATE: Lempar data lama ke bottom sheet
-                                        _showReviewBottomSheet(
-                                          context, 
-                                          transactionId,
-                                          existingReview: reviewData?['comment'],
-                                          existingRating: reviewData?['rating'] ?? 0,
-                                        );
-                                      } else {
-                                        // CREATE: Buka lembaran baru kosong
-                                        _showReviewBottomSheet(context, transactionId);
-                                      }
-                                    },
-                                    style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(color: Colors.green),
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                                        minimumSize: const Size(0, 30)),
-                                    child: Text(
-                                      hasReview ? 'Edit Ulasan' : 'Beri Ulasan', 
-                                      style: const TextStyle(color: Colors.green, fontSize: 10),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  ElevatedButton(
-                                    onPressed: () {},
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green,
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                                        minimumSize: const Size(0, 30)),
-                                    child: const Text('Beli Lagi', style: TextStyle(color: Colors.white, fontSize: 10)),
-                                  ),
-                                ],
-                              )
-                            ],
-                          )
                         ],
-                      ),
-                    );
-                  },
+                      ],
+                    ),
+                  ),
                 );
               },
             ),
-          )
-        ],
-      ),
-      bottomNavigationBar: const AppBottomNavBar(currentIndex: 2),
+      bottomNavigationBar: const AppBottomNavBar(currentIndex: 2), // Sesuaikan index navbar untuk Riwayat
     );
   }
 }

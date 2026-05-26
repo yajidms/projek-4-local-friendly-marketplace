@@ -16,10 +16,13 @@ Future<void> main() async {
   final box = await Hive.openBox('products');
   await Hive.openBox('reviews');
 
-  // Seed sample data (hanya sekali, kalau box masih kosong)
+  // 🔴 FIX: Paksa hapus semua memori data lama yang bikin error type 'Null'
+  await box.clear();
+
+  // Seed sample data (Pasti akan tereksekusi karena box baru saja dikosongkan)
   if (box.isEmpty) {
     for (final product in sampleProducts) {
-      await box.put(product.id, product.toMap());
+      await box.put(product.id, product.toJson());
     }
   }
 
