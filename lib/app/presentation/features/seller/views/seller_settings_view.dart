@@ -311,12 +311,13 @@ class _FotoTokoSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Banner
+        // Banner — full-width, proporsional
         Container(
-          height: 100,
+          width: double.infinity,
+          height: 120,
           decoration: BoxDecoration(
             gradient: SellerTheme.headerGradient,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Stack(
             alignment: Alignment.center,
@@ -325,17 +326,18 @@ class _FotoTokoSection extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.image_outlined,
-                      color: Colors.white.withValues(alpha: 0.5), size: 32),
+                      color: Colors.white.withValues(alpha: 0.55), size: 36),
                   const SizedBox(height: 6),
                   Text('Banner Toko',
                       style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontSize: 12)),
+                          color: Colors.white.withValues(alpha: 0.65),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500)),
                 ],
               ),
               Positioned(
                 bottom: 8,
-                right: 8,
+                right: 10,
                 child: _PhotoPickerBtn(label: 'Ubah Banner'),
               ),
             ],

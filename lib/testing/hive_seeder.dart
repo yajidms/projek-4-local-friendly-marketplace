@@ -25,16 +25,19 @@ Future<void> seedFakerDataToHive({bool forceReseed = false}) async {
   // Buka box produk (auto-close dihandle oleh caller / main)
   final box = await Hive.openBox<Product>(_kProductBox);
 
-  if (!forceReseed && box.isNotEmpty) {
-    // Sudah ada data — skip agar tidak duplikat setiap hot-restart
+  // Skip hanya jika sudah ada 100+ produk faker — jika kurang (misal data lama),
+  // tetap seed ulang agar data selalu lengkap
+  if (!forceReseed && box.length >= 100) {
     debugPrint(
-        '[HiveSeeder] Box "$_kProductBox" sudah berisi ${box.length} record. Skip seed.');
+        '[HiveSeeder] Box "$_kProductBox" sudah berisi ${box.length} produk faker. Skip seed.');
     return;
   }
 
-  if (forceReseed) {
+  // Bersihkan data lama (termasuk data hardcoded 5-6 produk dari versi sebelumnya)
+  if (box.isNotEmpty) {
     await box.clear();
-    debugPrint('[HiveSeeder] Box "$_kProductBox" dikosongkan untuk seed ulang.');
+    debugPrint(
+        '[HiveSeeder] Data lama (${box.length} record) dihapus, seed ulang dengan faker...');
   }
 
   // Ambil data dari getter publik faker (lazy singleton dari mock_repositories)
