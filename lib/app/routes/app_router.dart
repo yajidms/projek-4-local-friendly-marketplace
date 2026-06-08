@@ -1,7 +1,17 @@
-// File: lib/app/routes/app_router.dart
-
 import 'package:flutter/material.dart';
 
+import '../../admin/pages/dashboard_page.dart' as admin;
+import '../../admin/pages/verification/verification_list_page.dart' as admin;
+import '../../admin/pages/verification/verification_detail_page.dart' as admin;
+import '../../admin/pages/users/user_list_page.dart' as admin;
+import '../../admin/pages/users/user_detail_page.dart' as admin;
+import '../../admin/pages/sellers/seller_list_page.dart' as admin;
+import '../../admin/pages/sellers/seller_detail_page.dart' as admin;
+import '../../admin/pages/products/product_list_page.dart' as admin;
+import '../../admin/pages/orders/order_list_page.dart' as admin;
+import '../../admin/pages/orders/order_detail_page.dart' as admin;
+import '../../admin/pages/categories/category_page.dart' as admin;
+import '../../admin/pages/settings/settings_page.dart' as admin;
 import '../pages/auth_placeholder_page.dart';
 import '../../presentation/pages/home_page.dart'; 
 import '../../presentation/pages/profile_page.dart'; 
@@ -27,11 +37,23 @@ class AppRoutes {
   static const String transaction = '/transaction';
   static const String sellerRegistration = '/seller/register';
   static const String sellerDashboard = '/seller/dashboard';
+
+  // ── Admin routes (matching AdminRoutes from admin_router.dart) ──
+  static const String adminDashboard = '/dashboard';
+  static const String adminVerification = '/verification';
+  static const String adminVerificationDetail = '/verification/detail';
+  static const String adminUsers = '/users';
+  static const String adminUserDetail = '/users/detail';
+  static const String adminSellers = '/sellers';
+  static const String adminSellerDetail = '/sellers/detail';
+  static const String adminProducts = '/products';
+  static const String adminOrders = '/orders';
+  static const String adminOrderDetail = '/orders/detail';
+  static const String adminCategories = '/categories';
+  static const String adminSettings = '/settings';
 }
 
 /// Centralized route generator.
-/// BLoC provision is handled via MultiBlocProvider at the MaterialApp level
-/// in main.dart for production; here we wrap per-route for standalone use.
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -75,12 +97,77 @@ class AppRouter {
           settings: settings,
         );
 
+      // ── Admin routes ──────────────────────────────────────────
+      case AppRoutes.adminDashboard:
+        return MaterialPageRoute<void>(
+          builder: (_) => const admin.DashboardPage(),
+          settings: settings,
+        );
+      case AppRoutes.adminVerification:
+        return MaterialPageRoute<void>(
+          builder: (_) => const admin.VerificationListPage(),
+          settings: settings,
+        );
+      case AppRoutes.adminVerificationDetail:
+        final id = settings.arguments as String;
+        return MaterialPageRoute<void>(
+          builder: (_) => admin.VerificationDetailPage(id: id),
+          settings: settings,
+        );
+      case AppRoutes.adminUsers:
+        return MaterialPageRoute<void>(
+          builder: (_) => const admin.UserListPage(),
+          settings: settings,
+        );
+      case AppRoutes.adminUserDetail:
+        final id = settings.arguments as String;
+        return MaterialPageRoute<void>(
+          builder: (_) => admin.UserDetailPage(id: id),
+          settings: settings,
+        );
+      case AppRoutes.adminSellers:
+        return MaterialPageRoute<void>(
+          builder: (_) => const admin.SellerListPage(),
+          settings: settings,
+        );
+      case AppRoutes.adminSellerDetail:
+        final id = settings.arguments as String;
+        return MaterialPageRoute<void>(
+          builder: (_) => admin.SellerDetailPage(id: id),
+          settings: settings,
+        );
+      case AppRoutes.adminProducts:
+        return MaterialPageRoute<void>(
+          builder: (_) => const admin.ProductListPage(),
+          settings: settings,
+        );
+      case AppRoutes.adminOrders:
+        return MaterialPageRoute<void>(
+          builder: (_) => const admin.OrderListPage(),
+          settings: settings,
+        );
+      case AppRoutes.adminOrderDetail:
+        final id = settings.arguments as String;
+        return MaterialPageRoute<void>(
+          builder: (_) => admin.OrderDetailPage(id: id),
+          settings: settings,
+        );
+      case AppRoutes.adminCategories:
+        return MaterialPageRoute<void>(
+          builder: (_) => const admin.CategoryPage(),
+          settings: settings,
+        );
+      case AppRoutes.adminSettings:
+        return MaterialPageRoute<void>(
+          builder: (_) => const admin.SettingsPage(),
+          settings: settings,
+        );
+
       // ── Seller routes ─────────────────────────────────────────
       case AppRoutes.sellerRegistration:
         return PageRouteBuilder<void>(
           settings: settings,
           pageBuilder: (_, a, __) => const SellerRegistrationView(),
-          // NFR-ATR-03: Slide-up ≤ 300ms
           transitionsBuilder: (_, a, __, child) => SlideTransition(
             position: Tween<Offset>(
               begin: const Offset(0, 1),
@@ -115,36 +202,11 @@ class AppRouter {
     }
   }
 }
-// 🛠️ UBAH EXTENSION INI DI app_router.dart
+
+// TODO: storeName/storeLat/storeLng should come from backend API product response
+// or from joining Seller data via sellerId
 extension ProductModelUIExtension on ProductModel {
-  String get storeName {
-    switch (sellerId) {
-      case 'seller_2': return 'Warung Bu Siti';
-      case 'seller_3': return 'Toko Elektronik Maju';
-      case 'seller_4': return 'Pasar Segar Bu Dewi';
-      case 'seller_5': return 'Toko Kelontong Aman';
-      default: return 'Toko Sembako Pak Budi'; 
-    }
-  }
-
-  double get storeLat {
-    switch (sellerId) {
-      case 'seller_2': return -6.8358;
-      case 'seller_3': return -6.8401;
-      case 'seller_4': return -6.8445;
-      case 'seller_5': return -6.8489;
-      default: return -6.8329; 
-    }
-  }
-
-  double get storeLng {
-    switch (sellerId) {
-      case 'seller_2': return 107.5471;
-      case 'seller_3': return 107.5512;
-      case 'seller_4': return 107.5489;
-      case 'seller_5': return 107.5398;
-      default: return 107.5446; 
-    }
-  }
-  
+  String get storeName => 'Toko';
+  double get storeLat => 0.0;
+  double get storeLng => 0.0;
 }

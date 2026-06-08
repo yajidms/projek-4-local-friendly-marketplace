@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../main.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../../core/auth/auth_bootstrap.dart';
+import '../../app/routes/app_router.dart';
+import '../../core/di/app_dependencies.dart';
+import '../../data/datasources/local/in_memory_auth_local_datasource.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -10,6 +14,33 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  String _userName = 'username';
+  String _userEmail = '';
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    try {
+      final auth = await InMemoryAuthLocalDataSource().getAuthSession();
+      if (auth != null) {
+        final user = await AppDependencies.userRepository.getUserById(auth.user.id);
+        if (user != null && mounted) {
+          setState(() {
+            _userName = user.name.isNotEmpty ? user.name : 'username';
+            _userEmail = user.email;
+            _isLoading = false;
+          });
+          return;
+        }
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _isLoading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +56,17 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     const CircleAvatar(radius: 24, backgroundColor: Colors.grey),
                     const SizedBox(width: 12),
-                    const Expanded(
-                      child: Text('username',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_isLoading ? 'Memuat...' : _userName,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          if (_userEmail.isNotEmpty)
+                            Text(_userEmail,
+                                style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                        ],
+                      ),
                     ),
                     ValueListenableBuilder<ThemeMode>(
                       valueListenable: themeNotifier,
@@ -83,7 +122,19 @@ class _ProfilePageState extends State<ProfilePage> {
 
               // Keluar
               TextButton(
-                onPressed: () {},
+                onPressed: () async {
+                  final auth = AuthBootstrap.build();
+                  await auth.logout(useRemote: false);
+                  try {
+                    await auth.logout(useRemote: true);
+                  } catch (_) {}
+                  if (!context.mounted) return;
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    AppRoutes.auth,
+                    (route) => false,
+                  );
+                },
                 child: const Text('Keluar',
                     style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16)),
               ),

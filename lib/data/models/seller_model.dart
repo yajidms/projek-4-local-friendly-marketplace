@@ -160,5 +160,64 @@ class SellerModel {
 
   /// Create model from JSON
   factory SellerModel.fromJson(Map<String, dynamic> json) =>
-      _$SellerModelFromJson(json);
+      _$SellerModelFromJson(_normalizeJson(json));
+
+  static Map<String, dynamic> _normalizeJson(Map<String, dynamic> json) {
+    final normalized = Map<String, dynamic>.from(json);
+
+    final resolvedId = normalized['id'] ?? normalized['_id'];
+    normalized['id'] = (resolvedId ?? '').toString();
+    normalized['userId'] = (normalized['userId'] ?? '').toString();
+    normalized['shopName'] = (normalized['shopName'] ?? '').toString();
+
+    final locationValue = normalized['location'];
+    if (locationValue is Map<String, dynamic>) {
+      final locationMap = Map<String, dynamic>.from(locationValue);
+      final normalizedLat = _asDouble(locationMap['latitude'] ?? locationMap['lat']);
+      final normalizedLng =
+          _asDouble(locationMap['longitude'] ?? locationMap['lng'] ?? locationMap['long']);
+      if (normalizedLat != null && normalizedLng != null) {
+        locationMap['latitude'] = normalizedLat;
+        locationMap['longitude'] = normalizedLng;
+        normalized['location'] = locationMap;
+      } else {
+        normalized['location'] = null;
+      }
+    } else {
+      final lat = _asDouble(normalized['lat']);
+      final lng = _asDouble(normalized['lng'] ?? normalized['long'] ?? normalized['longitude']);
+      if (lat != null && lng != null) {
+        normalized['location'] = <String, dynamic>{
+          'latitude': lat,
+          'longitude': lng,
+          'address': normalized['shopAddress'],
+        };
+      } else {
+        normalized['location'] = null;
+      }
+    }
+
+    final createdAt = normalized['createdAt'];
+    if (createdAt is! String) {
+      normalized['createdAt'] = DateTime.now().toIso8601String();
+    }
+
+    final updatedAt = normalized['updatedAt'];
+    if (updatedAt is! String) {
+      normalized['updatedAt'] = DateTime.now().toIso8601String();
+    }
+
+    final categories = normalized['categories'];
+    if (categories is List) {
+      normalized['categories'] = categories.map((e) => e.toString()).toList();
+    }
+
+    return normalized;
+  }
+
+  static double? _asDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
 }

@@ -1,19 +1,105 @@
 import 'package:flutter/material.dart';
-import '../../app/routes/app_router.dart'; // Import rute aplikasi
+import '../../app/routes/app_router.dart';
+import '../../core/di/app_dependencies.dart';
+import '../../data/datasources/local/in_memory_auth_local_datasource.dart';
+import '../../data/models/order_model.dart';
+import '../../data/models/order_item_model.dart';
 
-class CheckoutPage extends StatelessWidget {
+class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
 
   @override
+  State<CheckoutPage> createState() => _CheckoutPageState();
+}
+
+class _CheckoutPageState extends State<CheckoutPage> {
+  bool _isSubmitting = false;
+
+  String _formatPrice(double price) {
+    return 'Rp ${price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
+  }
+
+  Future<void> _submitOrder() async {
+    setState(() => _isSubmitting = true);
+    try {
+      final auth = await InMemoryAuthLocalDataSource().getAuthSession();
+      if (auth == null) throw Exception('Not logged in');
+
+      final args = ModalRoute.of(context)?.settings.arguments as Map?;
+      final items = (args?['items'] as List? ?? []).cast<Map<String, dynamic>>();
+      final storeName = args?['storeName'] as String? ?? 'Toko';
+
+      if (items.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Keranjang belanja kosong')),
+          );
+        }
+        setState(() => _isSubmitting = false);
+        return;
+      }
+
+      final subtotal = items.fold(0.0, (sum, item) => sum + ((item['price'] as num) * (item['quantity'] as int)));
+      final orderItems = items.map((item) => OrderItemModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        orderId: '',
+        productId: item['id'],
+        quantity: item['quantity'],
+        unitPrice: (item['price'] as num).toDouble(),
+        subtotal: (item['price']) * (item['quantity'] as int),
+      )).toList();
+
+      final order = OrderModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        userId: auth.user.id,
+        sellerId: auth.user.sellerId,
+        items: orderItems,
+        status: 'pending',
+        subtotal: subtotal,
+        tax: 0,
+        shippingCost: 0,
+        total: subtotal,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      await AppDependencies.orderRepository.createOrder(order.toEntity());
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pesanan berhasil dibuat!')),
+        );
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.transaction,
+          (route) => route.settings.name == AppRoutes.home,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuat pesanan: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments as Map?;
+    final items = (args?['items'] as List? ?? []).cast<Map<String, dynamic>>();
+    final storeName = args?['storeName'] as String? ?? 'Toko';
+    final subtotal = items.fold(0.0, (sum, item) => sum + ((item['price'] as num) * (item['quantity'] as int)));
+    final totalItems = items.fold(0, (sum, item) => sum + (item['quantity'] as int));
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
         title: const Text('Checkout', style: TextStyle(color: Colors.white)),
       ),
@@ -22,71 +108,52 @@ class CheckoutPage extends StatelessWidget {
         children: [
           const Text('Alamat Pengiriman', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 4),
-          const Text('Jl. Pasar Tradisional No. 12, Kelurahan XYZ, Kec. ABC', style: TextStyle(color: Colors.grey)),
-          
+          Text(storeName, style: const TextStyle(color: Colors.grey)),
+
           const SizedBox(height: 24),
           const Divider(thickness: 1),
           const SizedBox(height: 16),
-          
+
           const Text('Item Pesanan', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.image, color: Colors.grey),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Nama Item Dummy', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const Text('1 x Rp. 45.000', style: TextStyle(color: Colors.green)),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(onPressed: () {}, icon: const Icon(Icons.remove, size: 16), constraints: const BoxConstraints(), padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4)),
-                            const Text('1', style: TextStyle(fontWeight: FontWeight.bold)),
-                            IconButton(onPressed: () {}, icon: const Icon(Icons.add, size: 16), constraints: const BoxConstraints(), padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4)),
-                          ],
-                        ),
-                      ),
+          ...items.map((item) {
+            final name = item['name'] as String? ?? '';
+            final price = (item['price'] as num).toDouble();
+            final qty = item['quantity'] as int;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 80, height: 80,
+                    decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(8)),
+                    child: const Icon(Icons.image, color: Colors.grey),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        Text('$qty x ${_formatPrice(price)}', style: const TextStyle(color: Colors.green)),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          
+            );
+          }),
+
           const SizedBox(height: 16),
           const Divider(thickness: 1),
           const SizedBox(height: 16),
 
-          // Metode Pembayaran (Sesuai DC-04: COD Only)
           const Text('Metode Pembayaran', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.green.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.green),
-            ),
+            decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.green)),
             child: const Row(
               children: [
                 Icon(Icons.handshake, color: Colors.green),
@@ -97,53 +164,16 @@ class CheckoutPage extends StatelessWidget {
           ),
 
           const SizedBox(height: 24),
-
-          // Upload Bukti Pembayaran (Sesuai UC-003)
-          const Text('Bukti Pembayaran (Opsional)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 4),
-          const Text('Lampirkan bukti jika melakukan pembayaran DP.', style: TextStyle(fontSize: 12, color: Colors.grey)),
-          const SizedBox(height: 12),
-          InkWell(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Simulasi membuka galeri perangkat...')),
-              );
-            },
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.cloud_upload_outlined, color: Colors.grey[600], size: 40),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Tap untuk Upload Gambar',
-                    style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold),
-                  ),
-                  const Text('Maks. 500 KB', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 24),
           const Divider(thickness: 1),
           const SizedBox(height: 16),
 
-          // Total Tagihan
           const Text('Detail Transaksi', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 12),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Total Harga (1 Item)', style: TextStyle(color: Colors.grey)),
-              Text('Rp 45.000', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('Total Harga ($totalItems Item)', style: const TextStyle(color: Colors.grey)),
+              Text(_formatPrice(subtotal), style: const TextStyle(fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 40),
@@ -151,40 +181,22 @@ class CheckoutPage extends StatelessWidget {
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(color: Colors.grey.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, -2))
-          ]
-        ),
+        decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, -2))]),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Column(
+            Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Total Tagihan', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                Text('Rp 45.000', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green)),
+                const Text('Total Tagihan', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                Text(_formatPrice(subtotal), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green)),
               ],
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              onPressed: () {
-                // Tampilkan snackbar konfirmasi sukses membuat entri pesanan awal (FR-029)
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Simulasi pesanan berhasil dibuat!')),
-                );
-
-                // 🛠️ TERHUBUNG: Langsung arahkan navigasi ke halaman Riwayat Transaksi pembeli
-                Navigator.pushNamed(context, AppRoutes.transaction);
-              },
-              child: const Text('Buat Pesanan', style: TextStyle(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+              onPressed: _isSubmitting ? null : _submitOrder,
+              child: Text(_isSubmitting ? 'Memproses...' : 'Buat Pesanan', style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),

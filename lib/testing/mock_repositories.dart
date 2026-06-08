@@ -191,6 +191,12 @@ class MockProductRepository implements ProductRepository {
   }
 
   @override
+  Future<List<Product>> getAllProducts() async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return List.from(_mockProducts);
+  }
+
+  @override
   Future<List<Product>> getProductsBySeller(String sellerId) async {
     await Future.delayed(const Duration(milliseconds: 400));
     return _mockProducts.where((p) => p.sellerId == sellerId).toList();
@@ -444,6 +450,20 @@ class MockOrderRepository implements OrderRepository {
       isSynced: true,
     ),
   ];
+
+  @override
+  Future<List<Order>> getOrdersByUserId(String userId) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return _orders.where((o) => o.userId == userId).toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  }
+
+  @override
+  Future<Order> createOrder(Order order) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    _orders.insert(0, order);
+    return order;
+  }
 
   @override
   Future<List<Order>> getOrdersBySeller(String sellerId) async {

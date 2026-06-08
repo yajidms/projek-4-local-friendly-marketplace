@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../app/routes/app_router.dart';
-import 'package:pade_localfriendly_marketplace/data/models/product_model.dart'; // 🛠️ Import Model Asli
+import '../../data/models/product_model.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -24,32 +24,16 @@ class _CartPageState extends State<CartPage> {
       final args = ModalRoute.of(context)?.settings.arguments;
       
       if (args is ProductModel) {
-        // Jika ada produk yang masuk, kita jadikan isi keranjang utama
         _currentStoreId = args.sellerId;
-        _currentStoreName = args.storeName; // Menggunakan getter dari extension router
+        _currentStoreName = args.storeName;
         _cartItems = [
           {
             'id': args.id,
             'name': args.name,
             'price': args.price,
-            'quantity': 1, 
+            'quantity': 1,
             'category': args.category,
           }
-        ];
-      } else {
-        // Jika keranjang dibuka dari AppBar katalog tanpa klik beli, 
-        // kita tetap memunculkan data dummy lama agar halaman tidak kosong
-        _currentStoreId = 'seller_1';
-        _currentStoreName = 'Toko Sembako Pak Budi';
-        _cartItems = [
-          {
-            'id': '1', 'name': 'Beras Premium 5kg', 'price': 75000,
-            'quantity': 1, 'category': 'Sembako',
-          },
-          {
-            'id': '2', 'name': 'Minyak Goreng 2L', 'price': 32000,
-            'quantity': 2, 'category': 'Sembako',
-          },
         ];
       }
       _isInit = true;
@@ -269,8 +253,10 @@ class _CartPageState extends State<CartPage> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),
                           onPressed: () {
-                            // Mengarah langsung ke halaman checkout yang sudah kita buat sebelumnya
-                            Navigator.pushNamed(context, AppRoutes.checkout);
+                            Navigator.pushNamed(context, AppRoutes.checkout, arguments: {
+                              'items': _cartItems,
+                              'storeName': _currentStoreName,
+                            });
                           },
                           child: const Text(
                             'Lanjut ke Checkout',

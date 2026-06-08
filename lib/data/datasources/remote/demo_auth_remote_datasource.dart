@@ -12,7 +12,6 @@ class DemoAuthRemoteDataSource implements AuthRemoteDataSource {
       email: email,
       name: _deriveName(email),
       password: password,
-      role: 'seller',
     );
   }
 
@@ -26,7 +25,6 @@ class DemoAuthRemoteDataSource implements AuthRemoteDataSource {
       email: email,
       name: name,
       password: password,
-      role: 'buyer',
     );
   }
 
@@ -63,18 +61,39 @@ class DemoAuthRemoteDataSource implements AuthRemoteDataSource {
     return;
   }
 
+  List<String> _deriveRoles(String email) {
+    final lower = email.toLowerCase();
+    final roles = <String>[];
+
+    // Admin emails contain "admin"
+    if (lower.contains('admin')) {
+      roles.add('admin');
+    }
+    // Buyer emails contain "buyer" or default if no specific role keyword
+    if (lower.contains('buyer') || (!lower.contains('admin') && !lower.contains('seller'))) {
+      roles.add('buyer');
+    }
+    // Seller emails contain "seller"
+    if (lower.contains('seller')) {
+      roles.add('seller');
+    }
+
+    return roles;
+  }
+
   AuthModel _buildSession({
     required String email,
     required String name,
     required String password,
-    required String role,
   }) {
     if (email.isEmpty || password.isEmpty) {
       throw ArgumentError('Email and password are required');
     }
 
     final userId = 'user_${email.hashCode.abs()}';
-    final sellerId = role == 'seller' ? 'seller_${email.hashCode.abs()}' : null;
+    final roles = _deriveRoles(email);
+    final isSeller = roles.contains('seller');
+    final sellerId = isSeller ? 'seller_${email.hashCode.abs()}' : null;
     final marketplaceId = 'marketplace_001';
     final now = DateTime.now();
     final expiresAt = now.add(const Duration(hours: 1));
@@ -83,9 +102,7 @@ class DemoAuthRemoteDataSource implements AuthRemoteDataSource {
       id: userId,
       name: name,
       email: email,
-      roles: [
-        RoleModel(value: role),
-      ],
+      roles: roles.map((r) => RoleModel(value: r)).toList(),
       marketplaceId: marketplaceId,
       sellerId: sellerId,
       createdAt: now.subtract(const Duration(days: 7)),

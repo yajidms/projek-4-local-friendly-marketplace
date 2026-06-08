@@ -4,6 +4,9 @@ import 'package:http/http.dart' as http;
 
 import '../../../config/env.dart';
 import '../../models/auth_model.dart';
+import '../../models/role_model.dart';
+import '../../models/user_model.dart';
+import '../../services/token_manager.dart';
 import 'auth_remote_datasource.dart';
 
 class HttpAuthRemoteDataSource implements AuthRemoteDataSource {
@@ -29,12 +32,57 @@ class HttpAuthRemoteDataSource implements AuthRemoteDataSource {
     return <String, dynamic>{'data': decoded};
   }
 
-  Map<String, dynamic> _extractAuthJson(Map<String, dynamic> body) {
-    final candidate = body['data'];
-    if (candidate is Map<String, dynamic>) {
-      return candidate;
+  AuthModel _buildAuth(Map<String, dynamic> data) {
+    final userValue = data['user'];
+    final token = data['token'] as String;
+
+    UserModel user;
+    if (userValue is Map<String, dynamic>) {
+      user = UserModel.fromJson(userValue);
+    } else if (userValue is String) {
+      // Login API returned user as string ID instead of full object
+      user = UserModel(
+        id: userValue,
+        name: '',
+        email: '',
+        roles: [],
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+    } else {
+      throw Exception('Unexpected user format in login response');
     }
-    return body;
+
+    TokenManager.instance.setToken(token);
+
+    final now = DateTime.now();
+    final expiresAt = _decodeJwtExp(token) ?? now.add(const Duration(hours: 24));
+
+    return AuthModel(
+      accessToken: token,
+      user: user,
+      issuedAt: now,
+      expiresAt: expiresAt,
+      tokenType: 'Bearer',
+    );
+  }
+
+  DateTime? _decodeJwtExp(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length < 2) return null;
+      final payload = utf8.decode(
+        base64Url.decode(base64Url.normalize(parts[1])),
+      );
+      final json = jsonDecode(payload) as Map<String, dynamic>;
+      final exp = json['exp'];
+      if (exp is int) {
+        return DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
@@ -43,13 +91,22 @@ class HttpAuthRemoteDataSource implements AuthRemoteDataSource {
       _uri('/auth/login'),
       headers: const {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
       },
       body: jsonEncode({'email': email, 'password': password}),
     );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      return AuthModel.fromJson(_extractAuthJson(_readBody(response)));
+      final body = _readBody(response);
+      final data = body['data'];
+      if (data is Map<String, dynamic>) {
+        return _buildAuth(data);
+      }
+      // Flat response: {user: {...}, token: "..."}
+      if (body.containsKey('user') && body.containsKey('token')) {
+        return _buildAuth(body);
+      }
+      throw Exception('Unexpected login response format');
     }
 
     throw Exception('Login failed: ${response.statusCode} ${response.body}');
@@ -65,16 +122,25 @@ class HttpAuthRemoteDataSource implements AuthRemoteDataSource {
       _uri('/auth/register'),
       headers: const {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
       },
       body: jsonEncode({'name': name, 'email': email, 'password': password}),
     );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      return AuthModel.fromJson(_extractAuthJson(_readBody(response)));
+      final body = _readBody(response);
+      final data = body['data'];
+      if (data is Map<String, dynamic>) {
+        return _buildAuth(data);
+      }
+      if (body.containsKey('user') && body.containsKey('token')) {
+        return _buildAuth(body);
+      }
+      throw Exception('Unexpected register response format');
     }
 
-    throw Exception('Register failed: ${response.statusCode} ${response.body}');
+    throw Exception(
+        'Register failed: ${response.statusCode} ${response.body}');
   }
 
   @override
@@ -83,13 +149,21 @@ class HttpAuthRemoteDataSource implements AuthRemoteDataSource {
       _uri('/auth/refresh'),
       headers: const {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
       },
       body: jsonEncode({'refreshToken': refreshToken}),
     );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      return AuthModel.fromJson(_extractAuthJson(_readBody(response)));
+      final body = _readBody(response);
+      final data = body['data'];
+      if (data is Map<String, dynamic>) {
+        return _buildAuth(data);
+      }
+      if (body.containsKey('user') && body.containsKey('token')) {
+        return _buildAuth(body);
+      }
+      throw Exception('Unexpected refresh response format');
     }
 
     throw Exception(
@@ -98,11 +172,12 @@ class HttpAuthRemoteDataSource implements AuthRemoteDataSource {
 
   @override
   Future<void> logout() async {
+    TokenManager.instance.clearToken();
     await _client.post(
       _uri('/auth/logout'),
       headers: const {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
       },
     );
   }

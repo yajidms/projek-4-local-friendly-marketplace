@@ -142,6 +142,11 @@ class HiveProductRepository implements ProductRepository {
   }
 
   @override
+  Future<List<Product>> getAllProducts() async {
+    return _box.values.toList();
+  }
+
+  @override
   Future<List<Product>> getProductsBySeller(String sellerId) async {
     return _box.values
         .where((p) => p.sellerId == sellerId)

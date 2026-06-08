@@ -9,7 +9,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'config/env.dart';
 import 'app/pages/auth_placeholder_page.dart';
 import 'app/routes/app_router.dart';
-import 'app/data/sample_data.dart';
 
 final themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.light);
 
@@ -17,20 +16,12 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Env.load();
 
-  // Init Hive
+  // Hive — used for offline cache by repositories (see app_dependencies.dart)
   await Hive.initFlutter();
-  final box = await Hive.openBox('products');
-  await Hive.openBox('reviews');
+  await Hive.openBox<String>('users');
+  await Hive.openBox<String>('orders');
 
-  // 🔴 FIX: Paksa hapus semua memori data lama yang bikin error type 'Null'
-  await box.clear();
-
-  // Seed sample data (Pasti akan tereksekusi karena box baru saja dikosongkan)
-  if (box.isEmpty) {
-    for (final product in sampleProducts) {
-      await box.put(product.id, product.toJson());
-    }
-  }
+  // Sample data seeding removed — app fetches from HTTP API via repositories.
 
   runApp(const MyApp());
 }
@@ -53,7 +44,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             useMaterial3: true,
             colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF1F6FEB),
+              seedColor: Colors.green,
               brightness: Brightness.light,
             ),
             scaffoldBackgroundColor: const Color(0xFFF5F7FB),
@@ -68,7 +59,7 @@ class MyApp extends StatelessWidget {
           darkTheme: ThemeData(
             useMaterial3: true,
             colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF1F6FEB),
+              seedColor: Colors.green,
               brightness: Brightness.dark,
             ),
             appBarTheme: const AppBarTheme(

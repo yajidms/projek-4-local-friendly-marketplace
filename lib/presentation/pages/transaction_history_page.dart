@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../../core/di/app_dependencies.dart';
+import '../../data/datasources/local/in_memory_auth_local_datasource.dart';
+import '../../domain/entities/order.dart';
 
 class TransactionHistoryPage extends StatefulWidget {
   const TransactionHistoryPage({super.key});
@@ -9,36 +12,26 @@ class TransactionHistoryPage extends StatefulWidget {
 }
 
 class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
-  // Mock List Transaksi yang bervariasi sesuai alur status di SRS (FR-030)
-  final List<Map<String, dynamic>> _mockTransactions = [
-    {
-      'id': 'TRX-20260525-01',
-      'productName': 'Beras Premium 5kg',
-      'storeName': 'Toko Sembako Pak Budi',
-      'quantity': 1,
-      'totalPrice': 75000,
-      'status': 'Menunggu Verifikasi', // Status awal setelah checkout (FR-029)
-      'date': '25 Mei 2026',
-    },
-    {
-      'id': 'TRX-20260524-02',
-      'productName': 'Minyak Goreng 2L',
-      'storeName': 'Toko Sembako Pak Budi',
-      'quantity': 2,
-      'totalPrice': 64000,
-      'status': 'Diproses', // Status setelah dikonfirmasi Seller (FR-032)
-      'date': '24 Mei 2026',
-    },
-    {
-      'id': 'TRX-20260520-03',
-      'productName': 'Kaos Polos Cotton',
-      'storeName': 'Warung Bu Siti',
-      'quantity': 3,
-      'totalPrice': 135000,
-      'status': 'Selesai', // Status akhir transaksi sukses
-      'date': '20 Mei 2026',
-    },
-  ];
+  List<Order> _orders = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOrders();
+  }
+
+  Future<void> _loadOrders() async {
+    try {
+      final auth = await InMemoryAuthLocalDataSource().getAuthSession();
+      if (auth != null) {
+        final orders = await AppDependencies.orderRepository.getOrdersByUserId(auth.user.id);
+        if (mounted) setState(() { _orders = orders; _isLoading = false; });
+        return;
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _isLoading = false);
+  }
 
   String _formatPrice(double price) {
     return 'Rp ${price.toStringAsFixed(0).replaceAllMapped(
@@ -47,19 +40,32 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
     )}';
   }
 
-  // Menentukan warna badge berdasarkan aturan status pesanan di SRS
+  String _formatDate(DateTime dt) {
+    return '${dt.day} ${_months[dt.month - 1]} ${dt.year}';
+  }
+
+  static const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'pending': return 'Menunggu Verifikasi';
+      case 'confirmed': return 'Dikonfirmasi';
+      case 'processing': return 'Diproses';
+      case 'shipped': return 'Dikirim';
+      case 'delivered': return 'Selesai';
+      case 'cancelled': return 'Dibatalkan';
+      default: return status;
+    }
+  }
+
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'Menunggu Verifikasi':
-        return Colors.orange;
-      case 'Diproses':
-        return Colors.blue;
-      case 'Siap Diambil':
-        return Colors.purple;
-      case 'Selesai':
-        return Colors.green;
-      default:
-        return Colors.grey;
+      case 'pending': return Colors.orange;
+      case 'processing': return Colors.blue;
+      case 'shipped': return Colors.purple;
+      case 'delivered': return Colors.green;
+      case 'cancelled': return Colors.red;
+      default: return Colors.grey;
     }
   }
 
@@ -73,7 +79,9 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
         backgroundColor: Colors.green,
         title: const Text('Riwayat Transaksi', style: TextStyle(color: Colors.white)),
       ),
-      body: _mockTransactions.isEmpty
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.green))
+          : _orders.isEmpty
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -86,10 +94,11 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: _mockTransactions.length,
+              itemCount: _orders.length,
               itemBuilder: (context, index) {
-                final trx = _mockTransactions[index];
-                final statusColor = _getStatusColor(trx['status']);
+                final order = _orders[index];
+                final itemsLabel = order.items.map((i) => '${i.product.name} x${i.quantity}').join(', ');
+                final statusColor = _getStatusColor(order.status.value);
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 16),
@@ -100,17 +109,12 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ID Transaksi & Status Badge
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              trx['id'],
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
+                              order.id,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey),
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -120,26 +124,21 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                                 border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                               ),
                               child: Text(
-                                trx['status'],
-                                style: TextStyle(
-                                  color: statusColor,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                _statusLabel(order.status.value),
+                                style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          trx['date'],
+                          _formatDate(order.updatedAt),
                           style: const TextStyle(fontSize: 11, color: Colors.grey),
                         ),
                         const Divider(height: 20),
 
-                        // Detail Item Konten
                         Text(
-                          trx['productName'],
+                          itemsLabel,
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                         const SizedBox(height: 2),
@@ -148,65 +147,46 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                             const Icon(Icons.storefront, size: 12, color: Colors.grey),
                             const SizedBox(width: 4),
                             Text(
-                              trx['storeName'],
+                              order.sellerId ?? 'Toko',
                               style: const TextStyle(color: Colors.grey, fontSize: 12),
                             ),
                           ],
                         ),
                         const SizedBox(height: 12),
 
-                        // Kuantitas (Satuan) & Total Harga
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // Menggunakan terminologi "Satuan" sesuai ledger aturan modifikasi data kamu
                             Text(
-                              '${trx['quantity']} Satuan',
+                              '${order.itemCount} Satuan',
                               style: TextStyle(color: theme.hintColor, fontSize: 13),
                             ),
                             Text(
-                              _formatPrice(trx['totalPrice'].toDouble()),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                                color: Colors.green,
-                              ),
+                              _formatPrice(order.total),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.green),
                             ),
                           ],
                         ),
 
-                        // Blok Tombol Aksi Dinamis Kontekstual Sesuai State Use Case SRS
-                        if (trx['status'] == 'Menunggu Verifikasi' || trx['status'] == 'Selesai') ...[
+                        if (order.status == OrderStatus.pending || order.status == OrderStatus.delivered) ...[
                           const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              // Jika pesanan baru dibuat, beri opsi upload bukti transfer (UC-003)
-                              if (trx['status'] == 'Menunggu Verifikasi')
+                              if (order.status == OrderStatus.pending)
                                 ElevatedButton.icon(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.orange,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  ),
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)), padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
                                   onPressed: () {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Simulasi melengkapi/upload ulang bukti pembayaran (UC-003)...')),
+                                      const SnackBar(content: Text('Simulasi upload bukti pembayaran...')),
                                     );
                                   },
                                   icon: const Icon(Icons.cloud_upload, size: 16),
                                   label: const Text('Upload Bukti Bayar', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                                 ),
-                              
-                              // Jika pesanan sudah beres, tampilkan fitur ulasan & pembelian ulang
-                              if (trx['status'] == 'Selesai') ...[
+                              if (order.status == OrderStatus.delivered) ...[
                                 OutlinedButton(
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.green,
-                                    side: const BorderSide(color: Colors.green),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  ),
+                                  style: OutlinedButton.styleFrom(foregroundColor: Colors.green, side: const BorderSide(color: Colors.green), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
                                   onPressed: () {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text('Simulasi menuju halaman ulasan produk...')),
@@ -216,11 +196,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                                 ),
                                 const SizedBox(width: 8),
                                 ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  ),
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
                                   onPressed: () {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text('Produk berhasil ditambahkan kembali ke keranjang belanja!')),

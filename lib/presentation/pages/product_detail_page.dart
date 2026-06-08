@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/models/product_model.dart';
 import '../../app/routes/app_router.dart';
-import 'package:pade_localfriendly_marketplace/data/models/product_model.dart';
 
 class ProductDetailPage extends StatelessWidget {
   const ProductDetailPage({super.key});
@@ -13,19 +12,12 @@ class ProductDetailPage extends StatelessWidget {
     )}';
   }
 
-  String _formatDistance(double? km) {
-    if (km == null) return '';
-    if (km < 1) return '${(km * 1000).toStringAsFixed(0)} m';
-    return '${km.toStringAsFixed(1)} km';
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     final args = ModalRoute.of(context)!.settings.arguments as Map;
     final product = args['product'] as ProductModel;
-    final distanceKm = args['distance'] as double?;
 
     return Scaffold(
       appBar: AppBar(
@@ -130,7 +122,7 @@ class ProductDetailPage extends StatelessWidget {
                                 const Icon(Icons.location_on, size: 12, color: Colors.grey),
                                 const SizedBox(width: 2),
                                 Text(
-                                  'Jarak dari lokasi Anda: ${_formatDistance(distanceKm)}',
+                                  'Lokasi toko',
                                   style: const TextStyle(fontSize: 11, color: Colors.grey),
                                 ),
                               ],

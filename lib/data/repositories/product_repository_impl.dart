@@ -26,6 +26,18 @@ class ProductRepositoryImpl extends ProductRepository {
   }
 
   @override
+  Future<List<Product>> getAllProducts() async {
+    try {
+      final remoteProducts = await remoteDataSource.getAllProducts();
+      await localDataSource.saveProducts(remoteProducts);
+      return remoteProducts.map((p) => p.toEntity()).toList();
+    } catch (e) {
+      final cachedProducts = await localDataSource.getAllProducts();
+      return cachedProducts.map((p) => p.toEntity()).toList();
+    }
+  }
+
+  @override
   Future<List<Product>> getProductsBySeller(String sellerId) async {
     try {
       final remoteProducts =

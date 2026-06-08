@@ -1,3 +1,5 @@
+import 'dart:math' as m;
+
 class Location {
   final double latitude;
   final double longitude;
@@ -24,12 +26,12 @@ class Location {
     final dLat = _degreesToRadians(other.latitude - latitude);
     final dLon = _degreesToRadians(other.longitude - longitude);
 
-    final a = (Math.sin(dLat / 2) * Math.sin(dLat / 2)) +
-        Math.cos(_degreesToRadians(latitude)) *
-            Math.cos(_degreesToRadians(other.latitude)) *
-            (Math.sin(dLon / 2) * Math.sin(dLon / 2));
+    final a = (m.sin(dLat / 2) * m.sin(dLat / 2)) +
+        m.cos(_degreesToRadians(latitude)) *
+            m.cos(_degreesToRadians(other.latitude)) *
+            (m.sin(dLon / 2) * m.sin(dLon / 2));
 
-    final c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    final c = 2 * m.atan2(m.sqrt(a), m.sqrt(1 - a));
     return earthRadiusKm * c;
   }
 
@@ -84,12 +86,4 @@ class Location {
 
   @override
   int get hashCode => latitude.hashCode ^ longitude.hashCode;
-}
-
-/// Utility class for math operations
-class Math {
-  static double sin(double x) => throw UnimplementedError();
-  static double cos(double x) => throw UnimplementedError();
-  static double atan2(double y, double x) => throw UnimplementedError();
-  static double sqrt(double x) => throw UnimplementedError();
 }
