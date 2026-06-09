@@ -48,18 +48,27 @@ class HttpSellerRemoteDataSource implements SellerRemoteDataSource {
 
   /// Payload yang dikirim ke backend — hanya field yang dikenal API.
   Map<String, dynamic> _sellerPayload(SellerModel s) {
-    return {
+    final payload = {
       'userId': s.userId,
       'shopName': s.shopName,
       if (s.shopDescription != null) 'shopDescription': s.shopDescription,
       if (s.shopImageUrl != null) 'shopImageUrl': s.shopImageUrl,
       if (s.shopAddress != null) 'shopAddress': s.shopAddress,
       if (s.shopPhone != null) 'shopPhone': s.shopPhone,
-      if (s.location != null) 'location': s.location!.toJson(),
       'categories': s.categories,
       'isActive': s.isActive,
       'isOnline': s.isOnline,
     };
+    
+    // Format lokasi sebagai GeoJSON Point untuk MongoDB 2dsphere index
+    if (s.location != null) {
+      payload['location'] = {
+        'type': 'Point',
+        'coordinates': [s.location!.longitude, s.location!.latitude],
+      };
+    }
+    
+    return payload;
   }
 
   @override
@@ -137,7 +146,12 @@ class HttpSellerRemoteDataSource implements SellerRemoteDataSource {
     final response = await _client.put(
       _token.uri('/sellers/$sellerId'),
       headers: _headers,
-      body: jsonEncode({'location': location.toJson()}),
+      body: jsonEncode({
+        'location': {
+          'type': 'Point',
+          'coordinates': [location.longitude, location.latitude],
+        }
+      }),
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return;

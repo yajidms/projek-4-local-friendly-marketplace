@@ -420,9 +420,10 @@ class _BuatTokoSheetState extends State<_BuatTokoSheet> {
       if (telp.isNotEmpty) body['shopPhone'] = telp;
 
       if (lat != null && lng != null) {
+        // Format ke GeoJSON Point yang sesuai untuk MongoDB 2dsphere index
         body['location'] = {
-          'latitude': lat,
-          'longitude': lng,
+          'type': 'Point',
+          'coordinates': [lng, lat],
         };
       }
 
