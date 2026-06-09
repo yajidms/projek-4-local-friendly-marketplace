@@ -14,6 +14,12 @@ class HttpSellerRemoteDataSource implements SellerRemoteDataSource {
   final http.Client _client;
   final _token = TokenManager.instance;
 
+  /// Header wajib untuk bypass ngrok interstitial page.
+  Map<String, String> get _headers => {
+        ..._token.authHeaders,
+        'ngrok-skip-browser-warning': 'true',
+      };
+
   Map<String, dynamic> _readBody(http.Response response) {
     final decoded = jsonDecode(response.body);
     if (decoded is Map<String, dynamic>) {
@@ -23,7 +29,7 @@ class HttpSellerRemoteDataSource implements SellerRemoteDataSource {
   }
 
   List<SellerModel> _parseList(Map<String, dynamic> body) {
-    final data = body['data'];
+    final data = body['data'] ?? body;
     if (data is List) {
       return data
           .map((e) => SellerModel.fromJson(e as Map<String, dynamic>))
@@ -33,30 +39,46 @@ class HttpSellerRemoteDataSource implements SellerRemoteDataSource {
   }
 
   SellerModel _parseSingle(Map<String, dynamic> body) {
-    final data = body['data'];
+    final data = body['data'] ?? body;
     if (data is Map<String, dynamic>) {
       return SellerModel.fromJson(data);
     }
     throw Exception('Unexpected response format');
   }
 
+  /// Payload yang dikirim ke backend — hanya field yang dikenal API.
+  Map<String, dynamic> _sellerPayload(SellerModel s) {
+    return {
+      'userId': s.userId,
+      'shopName': s.shopName,
+      if (s.shopDescription != null) 'shopDescription': s.shopDescription,
+      if (s.shopImageUrl != null) 'shopImageUrl': s.shopImageUrl,
+      if (s.shopAddress != null) 'shopAddress': s.shopAddress,
+      if (s.shopPhone != null) 'shopPhone': s.shopPhone,
+      if (s.location != null) 'location': s.location!.toJson(),
+      'categories': s.categories,
+      'isActive': s.isActive,
+      'isOnline': s.isOnline,
+    };
+  }
+
   @override
   Future<List<SellerModel>> getAllSellers() async {
     final response = await _client.get(
       _token.uri('/sellers'),
-      headers: _token.authHeaders,
+      headers: _headers,
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return _parseList(_readBody(response));
     }
-    throw Exception('Failed to get sellers: ${response.statusCode}');
+    throw Exception('Failed to get sellers: ${response.statusCode} ${response.body}');
   }
 
   @override
   Future<SellerModel> getSellerById(String id) async {
     final response = await _client.get(
       _token.uri('/sellers/$id'),
-      headers: _token.authHeaders,
+      headers: _headers,
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return _parseSingle(_readBody(response));
@@ -66,8 +88,9 @@ class HttpSellerRemoteDataSource implements SellerRemoteDataSource {
 
   @override
   Future<SellerModel?> getSellerByUserId(String userId) async {
-    final all = await getAllSellers();
+    // Tidak ada endpoint /sellers?userId=X — ambil semua lalu filter.
     try {
+      final all = await getAllSellers();
       return all.firstWhere((s) => s.userId == userId);
     } catch (_) {
       return null;
@@ -84,27 +107,28 @@ class HttpSellerRemoteDataSource implements SellerRemoteDataSource {
   Future<SellerModel> createSeller(SellerModel seller) async {
     final response = await _client.post(
       _token.uri('/sellers'),
-      headers: _token.authHeaders,
-      body: jsonEncode(seller.toJson()),
+      headers: _headers,
+      body: jsonEncode(_sellerPayload(seller)),
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return _parseSingle(_readBody(response));
     }
     final body = response.body.isNotEmpty ? response.body : 'no response body';
-    throw Exception('${response.statusCode}: $body');
+    throw Exception('Failed to create seller: ${response.statusCode}: $body');
   }
 
   @override
   Future<SellerModel> updateSeller(SellerModel seller) async {
     final response = await _client.put(
       _token.uri('/sellers/${seller.id}'),
-      headers: _token.authHeaders,
-      body: jsonEncode(seller.toJson()),
+      headers: _headers,
+      body: jsonEncode(_sellerPayload(seller)),
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return _parseSingle(_readBody(response));
     }
-    throw Exception('Failed to update seller: ${response.statusCode}');
+    final body = response.body.isNotEmpty ? response.body : '(empty)';
+    throw Exception('Failed to update seller: ${response.statusCode}: $body');
   }
 
   @override
@@ -112,8 +136,8 @@ class HttpSellerRemoteDataSource implements SellerRemoteDataSource {
       String sellerId, LocationModel location) async {
     final response = await _client.put(
       _token.uri('/sellers/$sellerId'),
-      headers: _token.authHeaders,
-      body: jsonEncode(location.toJson()),
+      headers: _headers,
+      body: jsonEncode({'location': location.toJson()}),
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return;
@@ -126,7 +150,7 @@ class HttpSellerRemoteDataSource implements SellerRemoteDataSource {
       String sellerId, bool isOnline) async {
     final response = await _client.put(
       _token.uri('/sellers/$sellerId'),
-      headers: _token.authHeaders,
+      headers: _headers,
       body: jsonEncode({'isOnline': isOnline}),
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -139,7 +163,7 @@ class HttpSellerRemoteDataSource implements SellerRemoteDataSource {
   Future<void> deleteSeller(String sellerId) async {
     final response = await _client.delete(
       _token.uri('/sellers/$sellerId'),
-      headers: _token.authHeaders,
+      headers: _headers,
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return;

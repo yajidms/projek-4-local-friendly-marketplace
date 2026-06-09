@@ -529,7 +529,7 @@ class _StatusBtn extends StatelessWidget {
         onPressed: () {
           context.read<TransactionBloc>().add(PerbaruiStatusTransaksi(
             orderId: order.id,
-            sellerId: order.sellerId ?? 'mock-seller-001',
+            sellerId: order.sellerId ?? '',
             status: targetStatus,
           ));
           Navigator.of(context).pop();

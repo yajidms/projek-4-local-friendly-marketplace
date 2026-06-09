@@ -20,6 +20,8 @@ class TokenManager {
     final headers = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      // Bypass ngrok browser warning interstitial page
+      'ngrok-skip-browser-warning': 'true',
     };
     if (_accessToken != null) {
       headers['Authorization'] = 'Bearer $_accessToken';

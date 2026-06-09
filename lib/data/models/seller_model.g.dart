@@ -1,39 +1,52 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+// MODIFIED — DO NOT REGENERATE (custom JSON handling for API compatibility)
 
 part of 'seller_model.dart';
 
 // **************************************************************************
-// JsonSerializableGenerator
+// JsonSerializableGenerator (hand-patched for API compatibility)
 // **************************************************************************
 
-SellerModel _$SellerModelFromJson(Map<String, dynamic> json) => SellerModel(
-      id: json['id'] as String,
-      userId: json['userId'] as String,
-      shopName: json['shopName'] as String,
-      shopDescription: json['shopDescription'] as String?,
-      shopImageUrl: json['shopImageUrl'] as String?,
-      shopAddress: json['shopAddress'] as String?,
-      shopPhone: json['shopPhone'] as String?,
-      location: json['location'] == null
-          ? null
-          : LocationModel.fromJson(json['location'] as Map<String, dynamic>),
-      categories: (json['categories'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
-      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
-      totalReviews: (json['totalReviews'] as num?)?.toInt() ?? 0,
-      totalProducts: (json['totalProducts'] as num?)?.toInt() ?? 0,
-      isVerified: json['isVerified'] as bool? ?? false,
-      isActive: json['isActive'] as bool? ?? true,
-      isOnline: json['isOnline'] as bool? ?? false,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
-      lastSyncedAt: json['lastSyncedAt'] == null
-          ? null
-          : DateTime.parse(json['lastSyncedAt'] as String),
-      isSynced: json['isSynced'] as bool? ?? true,
-    );
+SellerModel _$SellerModelFromJson(Map<String, dynamic> json) {
+  T? _field<T>(String camel, String snake) =>
+      (json[camel] ?? json[snake]) as T?;
+
+  return SellerModel(
+    id: (json['id'] as String?) ?? '',
+    userId: (_field<String>('userId', 'user_id')) ?? '',
+    shopName: (_field<String>('shopName', 'shop_name')) ?? '',
+    shopDescription: _field<String>('shopDescription', 'shop_description'),
+    shopImageUrl: _field<String>('shopImageUrl', 'shop_image_url'),
+    shopAddress: _field<String>('shopAddress', 'shop_address'),
+    shopPhone: _field<String>('shopPhone', 'shop_phone'),
+    location: json['location'] == null
+        ? null
+        : LocationModel.fromJson(json['location'] as Map<String, dynamic>),
+    categories: (json['categories'] as List<dynamic>?)
+            ?.map((e) => e as String)
+            .toList() ??
+        const [],
+    rating: ((_field<num>('rating', 'rating'))?.toDouble()) ?? 0.0,
+    totalReviews: ((_field<num>('totalReviews', 'total_reviews'))?.toInt()) ?? 0,
+    totalProducts: ((_field<num>('totalProducts', 'total_products'))?.toInt()) ?? 0,
+    isVerified: (_field<bool>('isVerified', 'is_verified')) ?? false,
+    isActive: (_field<bool>('isActive', 'is_active')) ?? true,
+    isOnline: (_field<bool>('isOnline', 'is_online')) ?? false,
+    createdAt: json['createdAt'] != null
+        ? DateTime.parse(json['createdAt'] as String)
+        : (json['created_at'] != null
+            ? DateTime.parse(json['created_at'] as String)
+            : DateTime.now()),
+    updatedAt: json['updatedAt'] != null
+        ? DateTime.parse(json['updatedAt'] as String)
+        : (json['updated_at'] != null
+            ? DateTime.parse(json['updated_at'] as String)
+            : DateTime.now()),
+    lastSyncedAt: json['lastSyncedAt'] == null
+        ? null
+        : DateTime.parse(json['lastSyncedAt'] as String),
+    isSynced: (json['isSynced'] as bool?) ?? true,
+  );
+}
 
 Map<String, dynamic> _$SellerModelToJson(SellerModel instance) =>
     <String, dynamic>{
