@@ -12,6 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../theme/seller_theme.dart';
 import '../../../../../domain/entities/index.dart';
 import '../bloc/product_bloc.dart';
+import '../bloc/seller_cubit.dart';
 import '../bloc/transaction_bloc.dart';
 import '../widgets/seller_nav_drawer.dart';
 import '../widgets/seller_theme_toggle.dart';
@@ -57,7 +58,17 @@ class _DashboardBody extends StatefulWidget {
 
 class _DashboardBodyState extends State<_DashboardBody> {
   SellerNavItem _activeItem = SellerNavItem.beranda;
-  String _shopName = 'PaDe Seller'; // Nama toko — bisa diubah dari Pengaturan
+  // Nama toko diambil dari SellerCubit; nilai ini sebagai fallback awal
+  String _shopName = 'PaDe Seller';
+
+  @override
+  void initState() {
+    super.initState();
+    // Muat profil penjual dari API pada saat dashboard pertama dibuka
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SellerCubit>().muatProfil();
+    });
+  }
 
   void _onNavItemSelected(SellerNavItem item) {
     setState(() => _activeItem = item);
@@ -71,110 +82,175 @@ class _DashboardBodyState extends State<_DashboardBody> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: SellerTheme.headerGradient),
-        ),
-        leading: Builder(
-          builder: (ctx) => IconButton(
-            icon: const Icon(Icons.menu_rounded),
-            tooltip: 'Buka menu',
-            onPressed: () => Scaffold.of(ctx).openDrawer(),
+    return BlocListener<SellerCubit, SellerState>(
+      listener: (context, state) {
+        if (state is SellerTertampil) {
+          // Perbarui nama toko dari data API
+          setState(() => _shopName = state.seller.shopName);
+          final sellerId = state.seller.id;
+          // Trigger muat produk & transaksi dengan sellerId yang sebenarnya
+          context.read<ProductBloc>().add(MuatProdukPenjual(sellerId: sellerId));
+          context.read<TransactionBloc>().add(MuatTransaksiPenjual(sellerId: sellerId));
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(gradient: SellerTheme.headerGradient),
           ),
-        ),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: SellerTheme.neonGreen.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                    color: SellerTheme.neonGreen.withValues(alpha: 0.4)),
-              ),
-              child: const Text(
-                'PaDe',
-                style: TextStyle(
-                    color: SellerTheme.neonGreen,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 13,
-                    letterSpacing: 1),
-              ),
+          leading: Builder(
+            builder: (ctx) => IconButton(
+              icon: const Icon(Icons.menu_rounded),
+              tooltip: 'Buka menu',
+              onPressed: () => Scaffold.of(ctx).openDrawer(),
             ),
-            const SizedBox(width: 8),
-            const Text('Seller',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18)),
-          ],
-        ),
-        actions: [
-          // Tombol toggle light/dark mode
-          const SellerThemeModeButton(),
-          BlocBuilder<ProductBloc, ProductState>(
-            builder: (ctx, state) {
-              final isSyncing = state is ProductSedangSinkron;
-              return IconButton(
-                icon: isSyncing
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: SellerTheme.neonGreen,
-                        ),
-                      )
-                    : const Icon(Icons.sync_rounded, color: Colors.white),
-                tooltip: 'Sinkronkan data',
-                onPressed: isSyncing
-                    ? null
-                    : () => ctx.read<ProductBloc>().add(
-                          SinkronkanProduk(sellerId: 'mock-seller-001'),
-                        ),
-              );
-            },
           ),
-          IconButton(
-            icon: Stack(
-              children: [
-                const Icon(Icons.notifications_outlined, color: Colors.white),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: SellerTheme.neonGreen.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                      color: SellerTheme.neonGreen.withValues(alpha: 0.4)),
+                ),
+                child: const Text(
+                  'PaDe',
+                  style: TextStyle(
                       color: SellerTheme.neonGreen,
-                      shape: BoxShape.circle,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 13,
+                      letterSpacing: 1),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text('Seller',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18)),
+            ],
+          ),
+          actions: [
+            // Tombol toggle light/dark mode
+            const SellerThemeModeButton(),
+            // Tombol sinkron — sellerId diambil dari SellerCubit
+            BlocBuilder<SellerCubit, SellerState>(
+              builder: (ctx, sellerState) {
+                final sellerId = sellerState is SellerTertampil
+                    ? sellerState.seller.id
+                    : '';
+                return BlocBuilder<ProductBloc, ProductState>(
+                  builder: (ctx, state) {
+                    final isSyncing = state is ProductSedangSinkron;
+                    return IconButton(
+                      icon: isSyncing
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: SellerTheme.neonGreen,
+                              ),
+                            )
+                          : const Icon(Icons.sync_rounded, color: Colors.white),
+                      tooltip: 'Sinkronkan data',
+                      onPressed: (isSyncing || sellerId.isEmpty)
+                          ? null
+                          : () => ctx.read<ProductBloc>().add(
+                                SinkronkanProduk(sellerId: sellerId),
+                              ),
+                    );
+                  },
+                );
+              },
+            ),
+            IconButton(
+              icon: Stack(
+                children: [
+                  const Icon(Icons.notifications_outlined, color: Colors.white),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: SellerTheme.neonGreen,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
+              tooltip: 'Notifikasi',
+              onPressed: () {},
             ),
-            tooltip: 'Notifikasi',
-            onPressed: () {},
-          ),
-        ],
-      ),
-      drawer: SellerNavDrawer(
-        selectedItem: _activeItem,
-        onItemSelected: _onNavItemSelected,
-        shopName: _shopName,
-      ),
-      body: AnimatedSwitcher(
-        duration: SellerTheme.animationDuration,
-        switchInCurve: SellerTheme.animationCurve,
-        switchOutCurve: SellerTheme.animationCurve,
-        child: _buildContent(_activeItem),
+          ],
+        ),
+        drawer: SellerNavDrawer(
+          selectedItem: _activeItem,
+          onItemSelected: _onNavItemSelected,
+          shopName: _shopName,
+        ),
+        body: BlocBuilder<SellerCubit, SellerState>(
+          builder: (context, sellerState) {
+            // Tampilkan loading saat pertama kali profil dimuat
+            if (sellerState is SellerInitial || sellerState is SellerMemuat) {
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: SellerTheme.neonGreen),
+                    SizedBox(height: 16),
+                    Text('Memuat profil toko...',
+                        style: TextStyle(color: Color(0xFF9E9E9E))),
+                  ],
+                ),
+              );
+            }
+            if (sellerState is SellerGagal) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline_rounded,
+                        size: 56, color: SellerTheme.errorRed),
+                    const SizedBox(height: 12),
+                    Text(sellerState.pesan, textAlign: TextAlign.center),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () =>
+                          context.read<SellerCubit>().muatProfil(),
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('Coba Lagi'),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: SellerTheme.primaryGreen,
+                          foregroundColor: Colors.white),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return AnimatedSwitcher(
+              duration: SellerTheme.animationDuration,
+              switchInCurve: SellerTheme.animationCurve,
+              switchOutCurve: SellerTheme.animationCurve,
+              child: _buildContent(_activeItem),
+            );
+          },
+        ),
       ),
     );
   }
 
   Widget _buildContent(SellerNavItem item) {
+    // Ambil seller dari cubit untuk diteruskan ke sub-view yang membutuhkan sellerId
+    final sellerState = context.read<SellerCubit>().state;
+    final seller = sellerState is SellerTertampil ? sellerState.seller : null;
+
     switch (item) {
       case SellerNavItem.beranda:
         return _BerandaContent(key: const ValueKey('beranda'), shopName: _shopName);
@@ -185,7 +261,8 @@ class _DashboardBodyState extends State<_DashboardBody> {
       case SellerNavItem.daftarProduk:
         return const ProductListView(key: ValueKey('daftar'));
       case SellerNavItem.tambahProduk:
-        return const _TambahProdukContent(key: ValueKey('tambah'));
+        return _TambahProdukContent(
+            key: const ValueKey('tambah'), seller: seller);
       case SellerNavItem.statistik:
         return _PlaceholderContent(
             key: const ValueKey('statistik'),
@@ -196,6 +273,7 @@ class _DashboardBodyState extends State<_DashboardBody> {
           key: const ValueKey('pengaturan'),
           initialShopName: _shopName,
           onShopNameChanged: _onShopNameChanged,
+          seller: seller,
         );
     }
   }
@@ -674,10 +752,15 @@ class _QuickActions extends StatelessWidget {
         accentColor: SellerTheme.neonGreen,
         onTap: () {
           final bloc = context.read<ProductBloc>();
+          // Ambil sellerId dari SellerCubit agar produk baru terikat ke toko yang benar
+          final sellerState = context.read<SellerCubit>().state;
+          final sellerId = sellerState is SellerTertampil
+              ? sellerState.seller.id
+              : null;
           Navigator.of(context).push(PageRouteBuilder<void>(
             pageBuilder: (_, a, __) => BlocProvider.value(
               value: bloc,
-              child: const ProductFormView(),
+              child: ProductFormView(sellerId: sellerId),
             ),
             transitionsBuilder: (_, a, __, child) => SlideTransition(
               position: Tween<Offset>(
@@ -1037,7 +1120,9 @@ class _PlaceholderContent extends StatelessWidget {
 }
 
 class _TambahProdukContent extends StatelessWidget {
-  const _TambahProdukContent({super.key});
+  /// Seller bisa null saat profil masih dimuat.
+  final Seller? seller;
+  const _TambahProdukContent({super.key, this.seller});
 
   @override
   Widget build(BuildContext context) {
@@ -1100,7 +1185,7 @@ class _TambahProdukContent extends StatelessWidget {
                     Navigator.of(context).push(PageRouteBuilder<void>(
                       pageBuilder: (_, a, __) => BlocProvider.value(
                         value: bloc,
-                        child: const ProductFormView(),
+                        child: ProductFormView(sellerId: seller?.id),
                       ),
                       transitionsBuilder: (_, a, __, child) => SlideTransition(
                         position: Tween<Offset>(

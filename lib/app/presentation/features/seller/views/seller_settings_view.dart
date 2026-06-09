@@ -10,17 +10,23 @@
 //   6. Info Akun
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../theme/seller_theme.dart';
+import '../../../../../domain/entities/seller.dart';
+import '../bloc/seller_cubit.dart';
 import '../widgets/seller_theme_toggle.dart';
 
 class SellerSettingsView extends StatefulWidget {
   final String initialShopName;
   final ValueChanged<String>? onShopNameChanged;
+  /// Profil penjual dari API — digunakan untuk pra-isi form & Akun Section.
+  final Seller? seller;
 
   const SellerSettingsView({
     super.key,
     this.initialShopName = 'PaDe Seller',
     this.onShopNameChanged,
+    this.seller,
   });
 
   @override
@@ -55,7 +61,19 @@ class _SellerSettingsViewState extends State<SellerSettingsView> {
   @override
   void initState() {
     super.initState();
-    _namaTokoCtrl = TextEditingController(text: widget.initialShopName);
+    _namaTokoCtrl = TextEditingController(
+      text: widget.seller?.shopName ?? widget.initialShopName,
+    );
+    // Pra-isi deskripsi dari API jika tersedia
+    if (widget.seller?.shopDescription != null &&
+        widget.seller!.shopDescription!.isNotEmpty) {
+      _deskripsiCtrl.text = widget.seller!.shopDescription!;
+    }
+    // Pra-isi alamat dari API jika tersedia
+    if (widget.seller?.shopAddress != null &&
+        widget.seller!.shopAddress!.isNotEmpty) {
+      _deskripsiCtrl.text = widget.seller!.shopDescription ?? _deskripsiCtrl.text;
+    }
   }
 
   @override
@@ -179,7 +197,7 @@ class _SellerSettingsViewState extends State<SellerSettingsView> {
             icon: Icons.manage_accounts_rounded,
             title: 'Akun Penjual',
             color: const Color(0xFFFF6E40),
-            child: _AkunSection(),
+            child: _AkunSection(seller: widget.seller),
           ),
 
           const SizedBox(height: 24),
@@ -238,24 +256,68 @@ class _SellerSettingsViewState extends State<SellerSettingsView> {
     );
   }
 
-  void _simpan(BuildContext context) {
-    // Propagate nama toko ke dashboard parent
+  void _simpan(BuildContext context) async {
+    // 1. Propagate nama toko ke dashboard parent (pembaruan lokal)
     widget.onShopNameChanged?.call(_namaTokoCtrl.text);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
-            SizedBox(width: 8),
-            Text('Pengaturan toko berhasil disimpan!'),
-          ],
+
+    // 2. Jika ada seller dari API, kirim pembaruan ke backend
+    if (widget.seller != null) {
+      final updatedSeller = widget.seller!.copyWith(
+        shopName: _namaTokoCtrl.text.trim(),
+        shopDescription: _deskripsiCtrl.text.trim().isNotEmpty
+            ? _deskripsiCtrl.text.trim()
+            : widget.seller!.shopDescription,
+      );
+      try {
+        await context.read<SellerCubit>().perbaruiProfil(updatedSeller);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Row(
+                children: [
+                  Icon(Icons.check_circle_rounded,
+                      color: Colors.white, size: 18),
+                  SizedBox(width: 8),
+                  Text('Pengaturan toko berhasil disimpan!'),
+                ],
+              ),
+              backgroundColor: SellerTheme.darkTeal,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(SellerTheme.borderRadius)),
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal menyimpan: ${e.toString()}'),
+              backgroundColor: SellerTheme.errorRed,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } else {
+      // Seller belum dimuat dari API — simpan lokal saja
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+              SizedBox(width: 8),
+              Text('Pengaturan toko berhasil disimpan!'),
+            ],
+          ),
+          backgroundColor: SellerTheme.darkTeal,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(SellerTheme.borderRadius)),
         ),
-        backgroundColor: SellerTheme.darkTeal,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(SellerTheme.borderRadius)),
-      ),
-    );
+      );
+    }
   }
 }
 
@@ -790,22 +852,27 @@ class _TemplateField extends StatelessWidget {
 // ─── Akun ────────────────────────────────────────────────────────────────────
 
 class _AkunSection extends StatelessWidget {
+  final Seller? seller;
+  const _AkunSection({this.seller});
+
   @override
   Widget build(BuildContext context) {
+    final sellerId = seller?.id ?? '—';
+    final isVerified = seller?.isVerified ?? false;
     return Column(
       children: [
         _AkunTile(
           icon: Icons.person_outline_rounded,
           label: 'ID Penjual',
-          value: 'mock-seller-001',
+          value: sellerId,
           color: const Color(0xFF82B1FF),
         ),
         const Divider(height: 16),
         _AkunTile(
           icon: Icons.verified_outlined,
           label: 'Status Verifikasi',
-          value: 'Belum Terverifikasi',
-          color: SellerTheme.syncPending,
+          value: isVerified ? 'Terverifikasi ✓' : 'Belum Terverifikasi',
+          color: isVerified ? SellerTheme.neonGreen : SellerTheme.syncPending,
         ),
         const Divider(height: 16),
         GestureDetector(

@@ -5,6 +5,7 @@
 
 // BLoC
 export 'bloc/product_bloc.dart';
+export 'bloc/seller_cubit.dart';
 export 'bloc/seller_registration_bloc.dart';
 export 'bloc/transaction_bloc.dart';
 

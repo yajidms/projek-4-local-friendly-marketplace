@@ -13,6 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../theme/seller_theme.dart';
 import '../../../../../domain/entities/product.dart';
 import '../bloc/product_bloc.dart';
+import '../bloc/seller_cubit.dart';
 import 'product_detail_view.dart';
 import 'product_form_view.dart';
 

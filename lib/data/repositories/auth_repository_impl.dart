@@ -3,6 +3,7 @@ import '../../domain/repositories/auth_repository.dart';
 import '../datasources/local/auth_local_datasource.dart';
 import '../datasources/remote/auth_remote_datasource.dart';
 import '../models/auth_model.dart';
+import '../services/token_manager.dart';
 
 class AuthRepositoryImpl extends AuthRepository {
   final AuthLocalDataSource localDataSource;
@@ -72,6 +73,10 @@ class AuthRepositoryImpl extends AuthRepository {
   Future<Auth?> getCurrentAuth() async {
     try {
       final authModel = await localDataSource.getAuthSession();
+      if (authModel != null && authModel.accessToken.isNotEmpty) {
+        // Pulihkan token ke TokenManager saat sesi dipulihkan dari storage.
+        TokenManager.instance.setToken(authModel.accessToken);
+      }
       return authModel?.toEntity();
     } catch (e) {
       return null;

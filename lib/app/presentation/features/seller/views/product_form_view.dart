@@ -32,8 +32,10 @@ const _kSatuan = [
 class ProductFormView extends StatefulWidget {
   /// Null berarti mode TAMBAH, non-null berarti mode EDIT.
   final Product? existingProduct;
+  /// sellerId untuk produk baru. Diisi dari SellerCubit saat dashboard dimuat.
+  final String? sellerId;
 
-  const ProductFormView({super.key, this.existingProduct});
+  const ProductFormView({super.key, this.existingProduct, this.sellerId});
 
   @override
   State<ProductFormView> createState() => _ProductFormViewState();
@@ -379,7 +381,7 @@ class _ProductFormViewState extends State<ProductFormView> {
 
     final product = Product(
       id: existing?.id ?? '',
-      sellerId: existing?.sellerId ?? 'mock-seller-001',
+      sellerId: existing?.sellerId ?? widget.sellerId ?? '',
       name: _namaCtrl.text.trim(),
       description: _deskripsiCtrl.text.trim(),
       specifications: _spesifikasiCtrl.text.trim().isNotEmpty

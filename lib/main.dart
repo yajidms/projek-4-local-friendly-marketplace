@@ -10,15 +10,21 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 // 1. Correct BLoC Imports
 import 'package:pade_localfriendly_marketplace/app/presentation/features/seller/bloc/product_bloc.dart';
+import 'package:pade_localfriendly_marketplace/app/presentation/features/seller/bloc/seller_cubit.dart';
 import 'package:pade_localfriendly_marketplace/app/presentation/features/seller/bloc/transaction_bloc.dart';
 
 // 2. Correct Datasource Imports
+import 'package:pade_localfriendly_marketplace/data/datasources/local/in_memory_auth_local_datasource.dart';
 import 'package:pade_localfriendly_marketplace/data/datasources/remote/http_product_remote_datasource.dart';
 import 'package:pade_localfriendly_marketplace/data/datasources/remote/http_order_remote_datasource.dart';
+import 'package:pade_localfriendly_marketplace/data/datasources/remote/http_seller_remote_datasource.dart';
+import 'package:pade_localfriendly_marketplace/data/datasources/remote/demo_auth_remote_datasource.dart';
 
 // 3. Correct Repository Imports
+import 'package:pade_localfriendly_marketplace/data/repositories/auth_repository_impl.dart';
 import 'package:pade_localfriendly_marketplace/data/repositories/product_repository_impl.dart';
 import 'package:pade_localfriendly_marketplace/data/repositories/order_repository_impl.dart';
+import 'package:pade_localfriendly_marketplace/data/repositories/seller_repository_impl.dart';
 
 import 'package:pade_localfriendly_marketplace/data/datasources/local/in_memory_local_datasources.dart';
 import 'package:pade_localfriendly_marketplace/data/datasources/local/hive_order_local_datasource.dart';
@@ -78,6 +84,21 @@ class MyApp extends StatelessWidget {
               remoteDataSource: HttpOrderRemoteDataSource(),
               // FIXED: Sourced from hive_order_local_datasource.dart
               localDataSource: HiveOrderLocalDataSource(), 
+            ),
+          ),
+        ),
+        // SellerCubit: memuat profil penjual dari API menggunakan sesi auth
+        BlocProvider<SellerCubit>(
+          create: (context) => SellerCubit(
+            // InMemoryAuthLocalDataSource menggunakan static fields — berbagi
+            // sesi yang sama dengan AuthBootstrap di AuthPlaceholderPage.
+            authRepository: AuthRepositoryImpl(
+              localDataSource: InMemoryAuthLocalDataSource(),
+              remoteDataSource: DemoAuthRemoteDataSource(),
+            ),
+            sellerRepository: SellerRepositoryImpl(
+              localDataSource: InMemorySellerLocalDataSource(),
+              remoteDataSource: HttpSellerRemoteDataSource(),
             ),
           ),
         ),
