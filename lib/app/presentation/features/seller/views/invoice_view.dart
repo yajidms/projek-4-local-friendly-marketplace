@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../theme/seller_theme.dart';
+import '../../../../../core/auth/auth_bootstrap.dart';
 import '../../../../../domain/entities/index.dart';
 import '../bloc/transaction_bloc.dart';
 
@@ -526,18 +527,24 @@ class _StatusBtn extends StatelessWidget {
       width: double.infinity,
       height: 48,
       child: ElevatedButton.icon(
-        onPressed: () {
-          context.read<TransactionBloc>().add(PerbaruiStatusTransaksi(
-            orderId: order.id,
-            sellerId: order.sellerId ?? 'mock-seller-001',
-            status: targetStatus,
-          ));
-          Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Status diubah menjadi "$label"'),
-            backgroundColor: color,
-            behavior: SnackBarBehavior.floating,
-          ));
+        onPressed: () async {
+          final auth = await AuthBootstrap.build().getCurrentSession(useRemote: true);
+          final sid = order.sellerId != null && order.sellerId!.isNotEmpty 
+              ? order.sellerId! 
+              : auth?.user.sellerId ?? '';
+          if (context.mounted) {
+            context.read<TransactionBloc>().add(PerbaruiStatusTransaksi(
+              orderId: order.id,
+              sellerId: sid,
+              status: targetStatus,
+            ));
+            Navigator.of(context).pop();
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Status diubah menjadi "$label"'),
+              backgroundColor: color,
+              behavior: SnackBarBehavior.floating,
+            ));
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: color,

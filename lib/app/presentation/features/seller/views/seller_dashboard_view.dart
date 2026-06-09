@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../theme/seller_theme.dart';
+import '../../../../../core/auth/auth_bootstrap.dart';
+
 import '../../../../../domain/entities/index.dart';
 import '../bloc/product_bloc.dart';
 import '../bloc/transaction_bloc.dart';
@@ -131,9 +133,15 @@ class _DashboardBodyState extends State<_DashboardBody> {
                 tooltip: 'Sinkronkan data',
                 onPressed: isSyncing
                     ? null
-                    : () => ctx.read<ProductBloc>().add(
-                          SinkronkanProduk(sellerId: 'mock-seller-001'),
-                        ),
+                    : () async {
+                        final authFacade = AuthBootstrap.build();
+                        final auth = await authFacade.getCurrentSession(useRemote: true);
+                        if (auth != null && auth.user.sellerId != null && ctx.mounted) {
+                          ctx.read<ProductBloc>().add(
+                            SinkronkanProduk(sellerId: auth.user.sellerId!),
+                          );
+                        }
+                      },
               );
             },
           ),

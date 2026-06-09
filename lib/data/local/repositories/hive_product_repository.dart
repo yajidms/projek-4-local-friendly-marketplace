@@ -15,98 +15,6 @@ import '../../../domain/repositories/product_repository.dart';
 /// Harus konsisten di seluruh app — jangan diubah setelah data tersimpan.
 const String kProductBoxName = 'products';
 
-/// 5 produk seed awal yang akan dimasukkan saat box pertama kali dibuka (kosong).
-List<Product> get _seedProducts {
-  final now = DateTime.now();
-  return [
-    Product(
-      id: 'prod-seed-001',
-      sellerId: 'mock-seller-001',
-      name: 'Beras Premium 5kg',
-      description: 'Beras putih pulen kualitas premium, cocok untuk keluarga.',
-      specifications: 'Berat bersih: 5 kg\nJenis: Beras putih premium\nAsal: Cianjur',
-      price: 75000,
-      quantity: 50,
-      category: 'Sembako',
-      unit: 'karung',
-      weight: 5000,
-      isAvailable: true,
-      createdAt: DateTime(2024, 2, 1),
-      updatedAt: now,
-      isSynced: false,
-      isLocalOnly: true,
-    ),
-    Product(
-      id: 'prod-seed-002',
-      sellerId: 'mock-seller-001',
-      name: 'Minyak Goreng 2L',
-      description: 'Minyak goreng kelapa sawit 2 liter, jernih dan tidak berbau.',
-      specifications: 'Volume: 2 liter\nKemasan: Botol plastik\nMerek: Fortune',
-      price: 32000,
-      quantity: 30,
-      category: 'Sembako',
-      unit: 'botol',
-      weight: 2000,
-      isAvailable: true,
-      createdAt: DateTime(2024, 2, 5),
-      updatedAt: now,
-      isSynced: false,
-      isLocalOnly: true,
-    ),
-    Product(
-      id: 'prod-seed-003',
-      sellerId: 'mock-seller-001',
-      name: 'Gula Pasir 1kg',
-      description: 'Gula pasir putih kemasan 1 kilogram, manis dan bersih.',
-      specifications: 'Berat bersih: 1 kg\nJenis: Gula pasir putih\nKemasan: Plastik standing pouch',
-      price: 17000,
-      quantity: 0,
-      category: 'Sembako',
-      unit: 'bungkus',
-      weight: 1000,
-      isAvailable: false,
-      createdAt: DateTime(2024, 2, 10),
-      updatedAt: now,
-      isSynced: false,
-      isLocalOnly: true,
-    ),
-    Product(
-      id: 'prod-seed-004',
-      sellerId: 'mock-seller-001',
-      name: 'Teh Botol Sosro 500ml',
-      description: 'Minuman teh manis original dalam botol plastik siap minum.',
-      specifications: 'Volume: 500 ml\nRasa: Original\nKemasan: Botol PET',
-      price: 5000,
-      quantity: 24,
-      category: 'Minuman',
-      unit: 'botol',
-      weight: 500,
-      isAvailable: true,
-      createdAt: DateTime(2024, 3, 1),
-      updatedAt: now,
-      isSynced: false,
-      isLocalOnly: true,
-    ),
-    Product(
-      id: 'prod-seed-005',
-      sellerId: 'mock-seller-001',
-      name: 'Kopi Sachet (renceng)',
-      description: 'Kopi instan sachet 1 renceng isi 10, cocok untuk warung.',
-      specifications: 'Isi: 10 sachet / renceng\nRasa: Original\nMerek: Kapal Api Special',
-      price: 22000,
-      quantity: 3,
-      category: 'Makanan',
-      unit: 'renceng',
-      weight: 200,
-      isAvailable: true,
-      createdAt: DateTime(2024, 3, 15),
-      updatedAt: now,
-      isSynced: false,
-      isLocalOnly: true,
-    ),
-  ];
-}
-
 /// Implementasi [ProductRepository] menggunakan Hive sebagai local offline DB.
 ///
 /// Semua operasi CRUD dilakukan secara langsung ke Hive Box di disk.
@@ -118,19 +26,11 @@ class HiveProductRepository implements ProductRepository {
 
   HiveProductRepository._(this._box);
 
-  /// Factory async: membuka box dan menyuntikkan seed data jika kosong.
+  /// Factory async: membuka box.
   ///
   /// Panggil ini di main() sebelum membuat BlocProvider.
   static Future<HiveProductRepository> open() async {
     final box = await Hive.openBox<Product>(kProductBoxName);
-
-    // Seed data awal jika box masih kosong (pertama kali dijalankan)
-    if (box.isEmpty) {
-      for (final product in _seedProducts) {
-        await box.put(product.id, product);
-      }
-    }
-
     return HiveProductRepository._(box);
   }
 

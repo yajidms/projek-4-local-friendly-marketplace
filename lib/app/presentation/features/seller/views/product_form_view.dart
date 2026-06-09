@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../theme/seller_theme.dart';
+import '../../../../../core/auth/auth_bootstrap.dart';
 import '../../../../../domain/entities/product.dart';
 import '../bloc/product_bloc.dart';
 
@@ -370,16 +371,19 @@ class _ProductFormViewState extends State<ProductFormView> {
     );
   }
 
-  void _onSimpan() {
+  void _onSimpan() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSaving = true);
 
     final now = DateTime.now();
     final existing = widget.existingProduct;
+    final authFacade = AuthBootstrap.build();
+    final auth = await authFacade.getCurrentSession(useRemote: true);
+    final sellerId = existing?.sellerId ?? auth?.user.sellerId ?? '';
 
     final product = Product(
       id: existing?.id ?? '',
-      sellerId: existing?.sellerId ?? 'mock-seller-001',
+      sellerId: sellerId,
       name: _namaCtrl.text.trim(),
       description: _deskripsiCtrl.text.trim(),
       specifications: _spesifikasiCtrl.text.trim().isNotEmpty
@@ -401,9 +405,13 @@ class _ProductFormViewState extends State<ProductFormView> {
     );
 
     if (_isEdit) {
-      context.read<ProductBloc>().add(PerbaruiProduk(product: product));
+      if (context.mounted) {
+        context.read<ProductBloc>().add(PerbaruiProduk(product: product));
+      }
     } else {
-      context.read<ProductBloc>().add(TambahProduk(product: product));
+      if (context.mounted) {
+        context.read<ProductBloc>().add(TambahProduk(product: product));
+      }
     }
   }
 

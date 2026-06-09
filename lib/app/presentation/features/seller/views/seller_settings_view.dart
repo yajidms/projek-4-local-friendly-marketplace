@@ -10,7 +10,11 @@
 //   6. Info Akun
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../theme/seller_theme.dart';
+import '../../../../../core/auth/auth_bootstrap.dart';
+import '../../../../../domain/entities/index.dart';
+import '../bloc/product_bloc.dart';
 import '../widgets/seller_theme_toggle.dart';
 
 class SellerSettingsView extends StatefulWidget {
@@ -321,17 +325,21 @@ class _FotoTokoSection extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.image_outlined,
-                      color: Colors.white.withValues(alpha: 0.5), size: 32),
-                  const SizedBox(height: 6),
-                  Text('Banner Toko',
-                      style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontSize: 12)),
-                ],
+              ListTile(
+                leading: const Icon(Icons.sync_rounded),
+                title: const Text('Sinkronisasi Produk'),
+                subtitle: const Text('Sinkronkan data lokal ke server'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () async {
+                  final authFacade = AuthBootstrap.build();
+                  final auth = await authFacade.getCurrentSession(useRemote: true);
+                  if (auth != null && auth.user.sellerId != null && context.mounted) {
+                    context.read<ProductBloc>().add(
+                      SinkronkanProduk(sellerId: auth.user.sellerId!),
+                    );
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
               Positioned(
                 bottom: 8,
@@ -794,11 +802,17 @@ class _AkunSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _AkunTile(
-          icon: Icons.person_outline_rounded,
-          label: 'ID Penjual',
-          value: 'mock-seller-001',
-          color: const Color(0xFF82B1FF),
+        FutureBuilder<Auth?>(
+          future: AuthBootstrap.build().getCurrentSession(useRemote: true),
+          builder: (context, snapshot) {
+            final sellerId = snapshot.data?.user.sellerId ?? 'Memuat...';
+            return _AkunTile(
+              icon: Icons.person_outline_rounded,
+              label: 'ID Penjual',
+              value: sellerId,
+              color: const Color(0xFF82B1FF),
+            );
+          },
         ),
         const Divider(height: 16),
         _AkunTile(
