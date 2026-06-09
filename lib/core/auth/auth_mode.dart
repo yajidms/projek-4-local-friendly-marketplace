@@ -1,0 +1,4 @@
+enum AuthMode {
+  demo,
+  remote,
+}

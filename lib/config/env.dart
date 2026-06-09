@@ -1,20 +1,15 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-/// Simple environment loader for Flutter using flutter_dotenv.
-///
-/// Usage:
-///   await Env.load();
-///   final base = Env.apiBaseUrl;
 class Env {
-  /// Load .env file (call from main before runApp)
-  static Future<void> load({String fileName = '.env'}) async {
-    await dotenv.load(fileName: fileName);
+  static Future<void> load() async {
+    await dotenv.load(fileName: '.env');
   }
 
-  /// API base URL used by remote datasources
-  static String get apiBaseUrl =>
-      dotenv.env['API_BASE_URL'] ?? 'https://api.example.com';
-
-  /// Other env helpers
-  static String? get someSecret => dotenv.env['SOME_SECRET'];
+  static String get authApiUrl => dotenv.env['AUTH_API_URL'] ?? '';
+  static String get apiBaseUrl => dotenv.env['API_BASE_URL'] ?? '';
+  static String get mongodbUrl => dotenv.env['MONGODB_URL'] ?? '';
+  
+  static String get backendUrl => authApiUrl.isNotEmpty ? authApiUrl : apiBaseUrl;
+  static bool get hasConfiguredBackendUrl => backendUrl.isNotEmpty && !backendUrl.contains('example.com');
+  static bool get usesMongoConnectionString => mongodbUrl.isNotEmpty;
 }

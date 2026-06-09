@@ -114,5 +114,39 @@ class UserModel {
 
   /// Create model from JSON
   factory UserModel.fromJson(Map<String, dynamic> json) =>
-      _$UserModelFromJson(json);
+      _$UserModelFromJson(_normalizeJson(json));
+
+  static Map<String, dynamic> _normalizeJson(Map<String, dynamic> json) {
+    final normalized = Map<String, dynamic>.from(json);
+
+    final rawRoles = normalized['roles'];
+    if (rawRoles is List) {
+      normalized['roles'] = rawRoles
+          .map((role) {
+            if (role is Map<String, dynamic>) return role;
+            if (role is String) return <String, dynamic>{'value': role};
+            return null;
+          })
+          .whereType<Map<String, dynamic>>()
+          .toList();
+    } else {
+      normalized['roles'] = <Map<String, dynamic>>[];
+    }
+
+    normalized['id'] = (normalized['id'] ?? '').toString();
+    normalized['name'] = (normalized['name'] ?? '').toString();
+    normalized['email'] = (normalized['email'] ?? '').toString();
+
+    final createdAt = normalized['createdAt'];
+    if (createdAt is! String) {
+      normalized['createdAt'] = DateTime.now().toIso8601String();
+    }
+
+    final updatedAt = normalized['updatedAt'];
+    if (updatedAt is! String) {
+      normalized['updatedAt'] = DateTime.now().toIso8601String();
+    }
+
+    return normalized;
+  }
 }

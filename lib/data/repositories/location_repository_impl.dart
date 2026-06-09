@@ -1,3 +1,5 @@
+import 'package:geolocator/geolocator.dart';
+
 import '../../domain/entities/index.dart';
 import '../../domain/repositories/location_repository.dart';
 import '../datasources/local/location_local_datasource.dart';
@@ -13,14 +15,45 @@ class LocationRepositoryImpl extends LocationRepository {
   @override
   Future<Location> getCurrentLocation() async {
     try {
-      // In actual implementation, use geolocator or location package
-      // For now, return cached or throw error
-      final cached = await localDataSource.getCachedLocation();
-      if (cached != null) {
-        return cached.toEntity();
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        final cached = await localDataSource.getCachedLocation();
+        if (cached != null) return cached.toEntity();
+        throw Exception('Location services are disabled');
       }
-      throw Exception('Location not available');
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.deniedForever) {
+        final cached = await localDataSource.getCachedLocation();
+        if (cached != null) return cached.toEntity();
+        throw Exception('Location permissions are permanently denied');
+      }
+      if (permission == LocationPermission.denied) {
+        final cached = await localDataSource.getCachedLocation();
+        if (cached != null) return cached.toEntity();
+        throw Exception('Location permissions are denied');
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 100,
+        ),
+      );
+
+      final location = Location(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
+
+      await cacheLocation(location);
+      return location;
     } catch (e) {
+      final cached = await localDataSource.getCachedLocation();
+      if (cached != null) return cached.toEntity();
       throw Exception('Failed to get current location: $e');
     }
   }
@@ -28,9 +61,12 @@ class LocationRepositoryImpl extends LocationRepository {
   @override
   Future<bool> requestLocationPermission() async {
     try {
-      // Use geolocator or location package to request permission
-      // Stub implementation
-      return true;
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      return permission == LocationPermission.always ||
+          permission == LocationPermission.whileInUse;
     } catch (e) {
       return false;
     }
@@ -39,9 +75,9 @@ class LocationRepositoryImpl extends LocationRepository {
   @override
   Future<bool> isLocationPermissionGranted() async {
     try {
-      // Check if location permission is granted
-      // Stub implementation
-      return true;
+      final permission = await Geolocator.checkPermission();
+      return permission == LocationPermission.always ||
+          permission == LocationPermission.whileInUse;
     } catch (e) {
       return false;
     }
@@ -71,7 +107,7 @@ class LocationRepositoryImpl extends LocationRepository {
   Future<Location?> getLocationFromAddress(String address) async {
     try {
       // Use geocoding to convert address to coordinates
-      // Stub implementation
+      // Requires geocoding package - stub for now
       return null;
     } catch (e) {
       return null;
@@ -82,7 +118,7 @@ class LocationRepositoryImpl extends LocationRepository {
   Future<String?> getAddressFromLocation(Location location) async {
     try {
       // Use reverse geocoding to convert coordinates to address
-      // Stub implementation
+      // Requires geocoding package - stub for now
       return null;
     } catch (e) {
       return null;
@@ -123,8 +159,25 @@ class LocationRepositoryImpl extends LocationRepository {
     double? distanceFilter,
   }) async {
     try {
-      // Use geolocator or location package for real-time updates
-      // Stub implementation
+      final permission = await Geolocator.checkPermission();
+      if (permission != LocationPermission.always &&
+          permission != LocationPermission.whileInUse) {
+        return;
+      }
+
+      Geolocator.getPositionStream(
+        locationSettings: LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: distanceFilter != null ? distanceFilter.toInt() : 100,
+        ),
+      ).listen((position) {
+        final location = Location(
+          latitude: position.latitude,
+          longitude: position.longitude,
+        );
+        onLocationUpdate(location);
+        cacheLocation(location);
+      });
     } catch (e) {
       // Handle error
     }
@@ -132,11 +185,7 @@ class LocationRepositoryImpl extends LocationRepository {
 
   @override
   Future<void> stopLocationUpdates() async {
-    try {
-      // Stop location updates
-      // Stub implementation
-    } catch (e) {
-      // Handle error
-    }
+    // Geolocator stream subscription needs to be cancelled by caller
+    // This is a stub - caller should cancel their subscription
   }
 }

@@ -5,6 +5,9 @@ abstract class ProductRepository {
   /// Get product by ID
   Future<Product?> getProductById(String productId);
 
+  /// Get all products
+  Future<List<Product>> getAllProducts();
+
   /// Get all products for a seller
   Future<List<Product>> getProductsBySeller(String sellerId);
 
