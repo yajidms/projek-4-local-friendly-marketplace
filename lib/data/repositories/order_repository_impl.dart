@@ -38,6 +38,18 @@ class OrderRepositoryImpl extends OrderRepository {
   }
 
   @override
+  Future<List<Order>> getOrdersByBuyer(String userId) async {
+    try {
+      final remoteOrders = await remoteDataSource.getOrdersByBuyer(userId);
+      await localDataSource.saveOrders(remoteOrders);
+      return remoteOrders.map((o) => o.toEntity()).toList();
+    } catch (e) {
+      final cachedOrders = await localDataSource.getOrdersByUserId(userId);
+      return cachedOrders.map((o) => o.toEntity()).toList();
+    }
+  }
+
+  @override
   Future<Order?> getOrderById(String orderId) async {
     try {
       final remoteOrder = await remoteDataSource.getOrderById(orderId);
@@ -52,14 +64,9 @@ class OrderRepositoryImpl extends OrderRepository {
   @override
   Future<Order> createOrder(Order order) async {
     final orderModel = OrderModel.fromEntity(order);
-    await localDataSource.saveOrder(orderModel);
-    try {
-      final remoteOrder = await remoteDataSource.createOrder(orderModel);
-      await localDataSource.saveOrder(remoteOrder);
-      return remoteOrder.toEntity();
-    } catch (e) {
-      return orderModel.toEntity();
-    }
+    final remoteOrder = await remoteDataSource.createOrder(orderModel);
+    await localDataSource.saveOrder(remoteOrder);
+    return remoteOrder.toEntity();
   }
 
   @override

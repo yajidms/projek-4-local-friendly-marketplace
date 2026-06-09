@@ -20,6 +20,7 @@ class DemoAuthRemoteDataSource implements AuthRemoteDataSource {
     required String name,
     required String email,
     required String password,
+    String phone = '',
   }) async {
     return _buildSession(
       email: email,

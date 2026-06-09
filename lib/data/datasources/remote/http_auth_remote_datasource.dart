@@ -117,6 +117,7 @@ class HttpAuthRemoteDataSource implements AuthRemoteDataSource {
     required String name,
     required String email,
     required String password,
+    String phone = '',
   }) async {
     final response = await _client.post(
       _uri('/auth/register'),
@@ -124,7 +125,14 @@ class HttpAuthRemoteDataSource implements AuthRemoteDataSource {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: jsonEncode({'name': name, 'email': email, 'password': password}),
+      body: jsonEncode({
+        'name': name,
+        'email': email,
+        'password': password,
+        'phone': phone,
+        'profileImageUrl': '',
+        'roles': ['buyer'],
+      }),
     );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {

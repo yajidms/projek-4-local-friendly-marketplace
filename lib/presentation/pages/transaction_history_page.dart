@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../../config/env.dart';
+import '../../core/auth/auth_bootstrap.dart';
 import '../../core/di/app_dependencies.dart';
-import '../../data/datasources/local/in_memory_auth_local_datasource.dart';
 import '../../domain/entities/order.dart';
 
 class TransactionHistoryPage extends StatefulWidget {
@@ -23,9 +24,11 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
 
   Future<void> _loadOrders() async {
     try {
-      final auth = await InMemoryAuthLocalDataSource().getAuthSession();
+      final auth = await AuthBootstrap.build().getCurrentSession(
+        useRemote: Env.hasConfiguredBackendUrl && !Env.usesMongoConnectionString,
+      );
       if (auth != null) {
-        final orders = await AppDependencies.orderRepository.getOrdersByUserId(auth.user.id);
+        final orders = await AppDependencies.orderRepository.getOrdersByBuyer(auth.user.id);
         if (mounted) setState(() { _orders = orders; _isLoading = false; });
         return;
       }

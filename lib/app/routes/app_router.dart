@@ -20,6 +20,7 @@ import '../../presentation/pages/checkout_page.dart';
 import '../../presentation/pages/product_detail_page.dart';
 import '../../presentation/pages/transaction_history_page.dart';
 import '../../presentation/pages/cart_page.dart';
+import '../../presentation/pages/register_page.dart';
 import 'package:pade_localfriendly_marketplace/data/models/product_model.dart';
 import '../presentation/features/seller/views/seller_registration_view.dart';
 import '../presentation/features/seller/views/seller_dashboard_view.dart';
@@ -35,6 +36,7 @@ class AppRoutes {
   static const String checkout = '/checkout';
   static const String product = '/product';
   static const String transaction = '/transaction';
+  static const String register = '/register';
   static const String sellerRegistration = '/seller/register';
   static const String sellerDashboard = '/seller/dashboard';
 
@@ -94,6 +96,12 @@ class AppRouter {
       case AppRoutes.transaction:
         return MaterialPageRoute<void>(
           builder: (_) => const TransactionHistoryPage(),
+          settings: settings,
+        );
+
+      case AppRoutes.register:
+        return MaterialPageRoute<void>(
+          builder: (_) => const RegisterPage(),
           settings: settings,
         );
 
@@ -160,6 +168,12 @@ class AppRouter {
       case AppRoutes.adminSettings:
         return MaterialPageRoute<void>(
           builder: (_) => const admin.SettingsPage(),
+          settings: settings,
+        );
+
+      case AppRoutes.register:
+        return MaterialPageRoute<void>(
+          builder: (_) => const RegisterPage(),
           settings: settings,
         );
 

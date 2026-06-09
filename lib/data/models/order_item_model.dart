@@ -10,6 +10,7 @@ class OrderItemModel {
   final String id;
   final String orderId;
   final String productId;
+  @JsonKey(includeToJson: false)
   final String productName;
   final double unitPrice;
   final int quantity;

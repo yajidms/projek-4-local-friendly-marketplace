@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../../app/routes/app_router.dart';
+import '../../config/env.dart';
+import '../../core/auth/auth_bootstrap.dart';
 import '../../core/di/app_dependencies.dart';
 import '../../domain/entities/seller.dart';
 import '../../domain/entities/location.dart';
+import '../../domain/entities/user.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,16 +23,26 @@ class _HomePageState extends State<HomePage> {
   double? _userLat;
   double? _userLng;
   bool _isLoadingLocation = true;
-  bool _isBottomRefreshInProgress = false;
   bool _isRequestingLocationPermission = false;
   String? _locationStatusMessage;
   List<Seller> _cachedSellers = [];
   List<_StoreWithDistance> _nearbyStores = [];
+  User? _currentUser;
 
   @override
   void initState() {
     super.initState();
+    _loadAuth();
     _initializeLocationTracking();
+  }
+
+  Future<void> _loadAuth() async {
+    final auth = await AuthBootstrap.build().getCurrentSession(
+      useRemote: Env.hasConfiguredBackendUrl && !Env.usesMongoConnectionString,
+    );
+    if (mounted) {
+      setState(() => _currentUser = auth?.user);
+    }
   }
 
   @override
@@ -180,35 +193,16 @@ class _HomePageState extends State<HomePage> {
     await Geolocator.openAppSettings();
   }
 
-  void _triggerBottomRefresh() {
-    if (_isBottomRefreshInProgress) return;
-    _isBottomRefreshInProgress = true;
-    _refreshHomeData().whenComplete(() {
-      _isBottomRefreshInProgress = false;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
       body: SafeArea(
-        child: NotificationListener<OverscrollNotification>(
-          onNotification: (notification) {
-            final metrics = notification.metrics;
-            final isBottomOverscroll = notification.overscroll > 0 &&
-                metrics.pixels >= metrics.maxScrollExtent;
-            if (isBottomOverscroll) {
-              _triggerBottomRefresh();
-            }
-            return false;
-          },
-          child: RefreshIndicator(
-            onRefresh: _refreshHomeData,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
+        child: RefreshIndicator(
+          onRefresh: _refreshHomeData,
+          child: SingleChildScrollView(
+            child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (_locationStatusMessage != null)
@@ -300,45 +294,76 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
 
-                  // Top Bar
+                  // Greeting
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                     child: Row(
                       children: [
                         Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: GestureDetector(
-                              onTap: () => Navigator.pushNamed(
-                                  context, AppRoutes.catalog),
-                              child: AbsorbPointer(
-                                child: TextField(
-                                  decoration: InputDecoration(
-                                    icon: Icon(Icons.search,
-                                        color: theme.hintColor),
-                                    hintText: 'Cari produk...',
-                                    border: InputBorder.none,
-                                    isDense: true,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        vertical: 10),
-                                  ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _currentUser != null
+                                    ? 'Halo, ${_currentUser!.name.split(' ').first}!'
+                                    : 'Halo!',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: theme.colorScheme.onSurface,
                                 ),
                               ),
-                            ),
+                              if (_currentUser != null)
+                                Text(
+                                  _currentUser!.isSeller
+                                      ? 'Penjual'
+                                      : _currentUser!.isAdmin
+                                          ? 'Admin'
+                                          : 'Pembeli',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 8),
                         Icon(Icons.notifications_none_rounded,
                             color: theme.iconTheme.color),
                         const SizedBox(width: 8),
                         Icon(Icons.chat_bubble_outline_rounded,
                             color: theme.iconTheme.color),
                       ],
+                    ),
+                  ),
+
+                  // Search Bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: GestureDetector(
+                        onTap: () => Navigator.pushNamed(
+                            context, AppRoutes.catalog),
+                        child: AbsorbPointer(
+                          child: TextField(
+                            decoration: InputDecoration(
+                              icon: Icon(Icons.search,
+                                  color: theme.hintColor),
+                              hintText: 'Cari produk...',
+                              border: InputBorder.none,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 10),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
 
@@ -558,54 +583,43 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 20),
                   ],
 
-                  // Baru-baru ini dibeli
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'Baru-baru ini dibeli',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: theme.colorScheme.onSurface,
+                  // Seller Quick Access
+                  if (_currentUser != null && _currentUser!.isSeller)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.sellerDashboard,
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: const Icon(Icons.dashboard_rounded, size: 20),
+                          label: const Text(
+                            'Dashboard Penjual',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            height: 130,
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Container(
-                            height: 130,
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+
+                  if (_currentUser != null && _currentUser!.isSeller)
+                    const SizedBox(height: 16),
                 ],
               ),
             ),
           ),
         ),
-      ),
       bottomNavigationBar: const AppBottomNavBar(currentIndex: 0),
-    );
+      );
   }
 }
 

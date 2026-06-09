@@ -43,6 +43,4 @@ Map<String, dynamic> _$OrderModelToJson(OrderModel instance) =>
       'notes': instance.notes,
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
-      'lastSyncedAt': instance.lastSyncedAt?.toIso8601String(),
-      'isSynced': instance.isSynced,
     };

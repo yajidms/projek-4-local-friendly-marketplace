@@ -335,9 +335,7 @@ class _AuthPlaceholderPageState extends State<AuthPlaceholderPage> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Fitur pendaftaran belum tersedia')),
-                          );
+                          Navigator.pushNamed(context, AppRoutes.register);
                         },
                         child: Text(
                           'Daftar',

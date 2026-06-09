@@ -11,11 +11,13 @@ class RegisterUseCase {
     required String name,
     required String email,
     required String password,
+    String phone = '',
   }) {
     return authRepository.register(
       name: name,
       email: email,
       password: password,
+      phone: phone,
     );
   }
 }

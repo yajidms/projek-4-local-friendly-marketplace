@@ -12,6 +12,9 @@ abstract class OrderRepository {
   /// Ambil semua pesanan yang ditujukan ke penjual [sellerId].
   Future<List<Order>> getOrdersBySeller(String sellerId);
 
+  /// Ambil semua pesanan milik pembeli (user yang login).
+  Future<List<Order>> getOrdersByBuyer(String userId);
+
   /// Ambil detail pesanan berdasarkan [orderId].
   Future<Order?> getOrderById(String orderId);
 

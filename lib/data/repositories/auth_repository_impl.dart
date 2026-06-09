@@ -33,6 +33,7 @@ class AuthRepositoryImpl extends AuthRepository {
     required String name,
     required String email,
     required String password,
+    String phone = '',
   }) async {
     try {
       // Call remote API to register
@@ -40,6 +41,7 @@ class AuthRepositoryImpl extends AuthRepository {
         name: name,
         email: email,
         password: password,
+        phone: phone,
       );
 
       // Save auth session locally

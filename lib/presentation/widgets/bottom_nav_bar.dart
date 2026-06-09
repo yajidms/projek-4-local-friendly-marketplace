@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app/routes/app_router.dart';
+import '../../config/env.dart';
+import '../../core/auth/auth_bootstrap.dart';
 
 class AppBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -14,8 +16,8 @@ class AppBottomNavBar extends StatelessWidget {
       currentIndex: currentIndex,
       type: BottomNavigationBarType.fixed,
       selectedItemColor: Colors.green,
-      unselectedItemColor: theme.colorScheme.onSurface.withValues(alpha: 0.6), // ✅ ikut tema
-      backgroundColor: theme.colorScheme.surface, // ✅ ikut tema
+      unselectedItemColor: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+      backgroundColor: theme.colorScheme.surface,
       onTap: (i) {
         if (i == currentIndex) return;
         switch (i) {

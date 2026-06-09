@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../app/routes/app_router.dart';
+import '../../config/env.dart';
+import '../../core/auth/auth_bootstrap.dart';
 import '../../core/di/app_dependencies.dart';
-import '../../data/datasources/local/in_memory_auth_local_datasource.dart';
 import '../../data/models/order_model.dart';
 import '../../data/models/order_item_model.dart';
 
@@ -19,15 +20,30 @@ class _CheckoutPageState extends State<CheckoutPage> {
     return 'Rp ${price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
   }
 
+  Widget _buildItemImage(dynamic images) {
+    if (images is List && images.isNotEmpty && images.first is String) {
+      return Image.network(
+        images.first as String,
+        fit: BoxFit.cover,
+        width: 80,
+        height: 80,
+        errorBuilder: (_, __, ___) => const Icon(Icons.image, color: Colors.grey),
+      );
+    }
+    return const Icon(Icons.image, color: Colors.grey);
+  }
+
   Future<void> _submitOrder() async {
     setState(() => _isSubmitting = true);
     try {
-      final auth = await InMemoryAuthLocalDataSource().getAuthSession();
+      final auth = await AuthBootstrap.build().getCurrentSession(
+        useRemote: Env.hasConfiguredBackendUrl && !Env.usesMongoConnectionString,
+      );
       if (auth == null) throw Exception('Not logged in');
 
       final args = ModalRoute.of(context)?.settings.arguments as Map?;
       final items = (args?['items'] as List? ?? []).cast<Map<String, dynamic>>();
-      final storeName = args?['storeName'] as String? ?? 'Toko';
+      final storeId = args?['storeId'] as String? ?? '';
 
       if (items.isEmpty) {
         if (mounted) {
@@ -44,6 +60,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         orderId: '',
         productId: item['id'],
+        productName: item['name'] ?? '',
         quantity: item['quantity'],
         unitPrice: (item['price'] as num).toDouble(),
         subtotal: (item['price']) * (item['quantity'] as int),
@@ -52,15 +69,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
       final order = OrderModel(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         userId: auth.user.id,
-        sellerId: auth.user.sellerId,
+        sellerId: storeId.isNotEmpty ? storeId : null,
         items: orderItems,
         status: 'pending',
         subtotal: subtotal,
         tax: 0,
         shippingCost: 0,
         total: subtotal,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        createdAt: DateTime.now().toUtc(),
+        updatedAt: DateTime.now().toUtc(),
       );
 
       await AppDependencies.orderRepository.createOrder(order.toEntity());
@@ -125,10 +142,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 80, height: 80,
-                    decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(8)),
-                    child: const Icon(Icons.image, color: Colors.grey),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      width: 80, height: 80,
+                      color: Colors.grey[300],
+                      child: _buildItemImage(item['images']),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(

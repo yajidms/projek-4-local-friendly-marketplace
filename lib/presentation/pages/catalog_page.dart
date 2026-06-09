@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../app/routes/app_router.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../../config/env.dart';
+import '../../core/auth/auth_bootstrap.dart';
 import '../../core/di/app_dependencies.dart';
 import '../../data/models/product_model.dart';
 
@@ -18,6 +20,7 @@ class _CatalogPageState extends State<CatalogPage> {
   bool _isLoading = true;
   String _selectedCategory = '';
   bool _isInit = false;
+  String? _sellerId;
 
   @override
   void initState() {
@@ -35,6 +38,7 @@ class _CatalogPageState extends State<CatalogPage> {
         _selectedCategory = args['category'] ?? '';
       }
       
+      _loadAuth();
       _loadProducts();
       _isInit = true;
     }
@@ -44,6 +48,15 @@ class _CatalogPageState extends State<CatalogPage> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadAuth() async {
+    final auth = await AuthBootstrap.build().getCurrentSession(
+      useRemote: Env.hasConfiguredBackendUrl && !Env.usesMongoConnectionString,
+    );
+    if (auth != null && auth.user.isSeller) {
+      _sellerId = auth.user.sellerId;
+    }
   }
 
   Future<void> _loadProducts() async {
@@ -71,7 +84,8 @@ class _CatalogPageState extends State<CatalogPage> {
         final matchesQuery = p.name.toLowerCase().contains(query) ||
             p.category.toLowerCase().contains(query);
         final matchesCategory = _selectedCategory.isEmpty || p.category == _selectedCategory;
-        return matchesQuery && matchesCategory;
+        final matchesSeller = _sellerId == null || p.sellerId == _sellerId;
+        return matchesQuery && matchesCategory && matchesSeller;
       }).toList();
     });
   }
@@ -87,7 +101,10 @@ class _CatalogPageState extends State<CatalogPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.green,
-        title: const Text('Katalog Terdekat', style: TextStyle(color: Colors.white)),
+        title: Text(
+          _sellerId != null ? 'Produk Saya' : 'Katalog Terdekat',
+          style: const TextStyle(color: Colors.white),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.shopping_cart, color: Colors.white),
@@ -152,7 +169,7 @@ class _CatalogPageState extends State<CatalogPage> {
                             return InkWell(
                               onTap: () => Navigator.pushNamed(
                                 context, AppRoutes.product,
-                                arguments: {'product': product},
+                                arguments: {'productId': product.id},
                               ),
                               borderRadius: BorderRadius.circular(12),
                               child: Container(
@@ -161,7 +178,33 @@ class _CatalogPageState extends State<CatalogPage> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Expanded(child: Container(decoration: BoxDecoration(color: theme.colorScheme.outlineVariant, borderRadius: BorderRadius.circular(8)), child: const Center(child: Icon(Icons.image, color: Colors.white54)))),
+                                    Expanded(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Container(
+                                          decoration: BoxDecoration(color: theme.colorScheme.outlineVariant),
+                                          child: product.images != null && product.images!.isNotEmpty
+                                              ? Image.network(
+                                                  product.images!.first,
+                                                  fit: BoxFit.cover,
+                                                  width: double.infinity,
+                                                  errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.image, color: Colors.white54)),
+                                                  loadingBuilder: (_, child, loadingProgress) {
+                                                    if (loadingProgress == null) return child;
+                                                    return Center(
+                                                      child: CircularProgressIndicator(
+                                                        value: loadingProgress.expectedTotalBytes != null
+                                                            ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                                            : null,
+                                                        color: Colors.green,
+                                                      ),
+                                                    );
+                                                  },
+                                                )
+                                              : const Center(child: Icon(Icons.image, color: Colors.white54)),
+                                        ),
+                                      ),
+                                    ),
                                     const SizedBox(height: 8),
                                     Text(product.name, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold), maxLines: 2, overflow: TextOverflow.ellipsis),
                                     const SizedBox(height: 2),

@@ -10,6 +10,7 @@ abstract class AuthRemoteDataSource {
     required String name,
     required String email,
     required String password,
+    String phone = '',
   });
 
   /// Refresh access token using refresh token

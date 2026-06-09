@@ -56,6 +56,21 @@ class HttpOrderRemoteDataSource implements OrderRemoteDataSource {
   }
 
   @override
+  Future<List<OrderModel>> getOrdersByBuyer(String userId) async {
+    final response = await _client.get(
+      _token.uri('/orders/buyer?userId=$userId'),
+      headers: _token.authHeaders,
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final body = jsonDecode(response.body);
+      final data = body is Map ? (body['data'] ?? body) : body;
+      final list = data is List ? data : (data['orders'] ?? []);
+      return (list as List).map((e) => OrderModel.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    throw Exception('Failed to fetch buyer orders: ${response.statusCode}');
+  }
+
+  @override
   Future<OrderModel> createOrder(OrderModel order) async {
     final response = await _client.post(
       _token.uri('/orders'),
@@ -67,7 +82,8 @@ class HttpOrderRemoteDataSource implements OrderRemoteDataSource {
       final data = body is Map ? (body['data'] ?? body) : body;
       return OrderModel.fromJson(data as Map<String, dynamic>);
     }
-    throw Exception('Failed to create order: ${response.statusCode}');
+    final errorBody = response.body.isNotEmpty ? response.body : '(empty)';
+    throw Exception('Failed to create order: ${response.statusCode} — $errorBody');
   }
 
   @override

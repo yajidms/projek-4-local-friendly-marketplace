@@ -48,6 +48,7 @@ class AuthFacade {
     required String name,
     required String email,
     required String password,
+    String phone = '',
     required bool useRemote,
   }) {
     return _bundleFor(useRemote ? AuthMode.remote : AuthMode.demo)
@@ -55,6 +56,7 @@ class AuthFacade {
       name: name,
       email: email,
       password: password,
+      phone: phone,
     );
   }
 

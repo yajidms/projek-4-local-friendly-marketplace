@@ -21,7 +21,9 @@ class OrderModel {
   final String? notes;
   final DateTime createdAt;
   final DateTime updatedAt;
+  @JsonKey(includeToJson: false)
   final DateTime? lastSyncedAt;
+  @JsonKey(includeToJson: false)
   final bool isSynced;
 
   OrderModel({

@@ -90,7 +90,8 @@ class HttpSellerRemoteDataSource implements SellerRemoteDataSource {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return _parseSingle(_readBody(response));
     }
-    throw Exception('Failed to create seller: ${response.statusCode}');
+    final body = response.body.isNotEmpty ? response.body : 'no response body';
+    throw Exception('${response.statusCode}: $body');
   }
 
   @override
