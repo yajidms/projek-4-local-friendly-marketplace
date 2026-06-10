@@ -1,10 +1,11 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-import '../../data/datasources/local/admin_mock_datasource.dart';
 import '../../domain/entities/admin_dashboard_stats.dart';
+import '../../domain/repositories/admin_repository.dart';
 import '../routes/admin_router.dart';
 import '../theme/admin_theme.dart';
+import '../widgets/admin_provider.dart';
 import '../widgets/admin_scaffold.dart';
 import '../widgets/stat_card.dart';
 
@@ -17,12 +18,26 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  late AdminDashboardStats _stats;
+  late final AdminRepository _repo;
+  AdminDashboardStats? _stats;
+  bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _stats = AdminMockDatasource().getDashboardStats();
+    _repo = AdminProvider.read(context);
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final stats = await _repo.getDashboardStats();
+      if (mounted) setState(() { _stats = stats; _loading = false; });
+    } catch (e) {
+      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+    }
   }
 
   String _formatCurrency(double amount) {
@@ -40,106 +55,118 @@ class _DashboardPageState extends State<DashboardPage> {
       currentRoute: AdminRoutes.dashboard,
       title: 'Dashboard',
       subtitle: 'Selamat datang di PaDe Admin Dashboard',
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ─── Stat Cards ───────────────────────────────
-            LayoutBuilder(builder: (context, constraints) {
-              final crossCount = constraints.maxWidth > 1000
-                  ? 5
-                  : constraints.maxWidth > 700
-                      ? 3
-                      : 2;
-              return Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                children: [
-                  _buildStatCard(
-                    Icons.people_rounded,
-                    'Total Pengguna',
-                    '${_stats.totalUsers}',
-                    '+12%',
-                    true,
-                    AdminTheme.info,
-                    constraints.maxWidth,
-                    crossCount,
-                  ),
-                  _buildStatCard(
-                    Icons.storefront_rounded,
-                    'Total Toko',
-                    '${_stats.totalSellers}',
-                    '+8%',
-                    true,
-                    AdminTheme.primaryLight,
-                    constraints.maxWidth,
-                    crossCount,
-                  ),
-                  _buildStatCard(
-                    Icons.hourglass_top_rounded,
-                    'Pending Verifikasi',
-                    '${_stats.pendingVerifications}',
-                    null,
-                    null,
-                    AdminTheme.warning,
-                    constraints.maxWidth,
-                    crossCount,
-                  ),
-                  _buildStatCard(
-                    Icons.receipt_long_rounded,
-                    'Total Pesanan',
-                    '${_stats.totalOrders}',
-                    '+18%',
-                    true,
-                    AdminTheme.accent,
-                    constraints.maxWidth,
-                    crossCount,
-                  ),
-                  _buildStatCard(
-                    Icons.payments_rounded,
-                    'Total Pendapatan',
-                    _formatCurrency(_stats.totalRevenue),
-                    '+24%',
-                    true,
-                    AdminTheme.success,
-                    constraints.maxWidth,
-                    crossCount,
-                  ),
-                ],
-              );
-            }),
-
-            const SizedBox(height: 28),
-
-            // ─── Charts Row ──────────────────────────────
-            LayoutBuilder(builder: (context, constraints) {
-              if (constraints.maxWidth > 800) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(flex: 3, child: _buildOrderTrendChart()),
-                    const SizedBox(width: 16),
-                    Expanded(flex: 2, child: _buildCategoryChart()),
-                  ],
-                );
-              }
-              return Column(
-                children: [
-                  _buildOrderTrendChart(),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator(color: AdminTheme.primaryLight))
+          : _error != null
+              ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.error_outline, color: AdminTheme.danger, size: 48),
+                  const SizedBox(height: 12),
+                  Text('Gagal memuat data', style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 16)),
+                  const SizedBox(height: 8),
+                  Text(_error!, style: const TextStyle(color: AdminTheme.textMuted, fontSize: 13)),
                   const SizedBox(height: 16),
-                  _buildCategoryChart(),
-                ],
-              );
-            }),
+                  ElevatedButton(onPressed: _loadData, child: const Text('Coba Lagi')),
+                ]))
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ─── Stat Cards ───────────────────────────────
+                      LayoutBuilder(builder: (context, constraints) {
+                        final crossCount = constraints.maxWidth > 1000
+                            ? 5
+                            : constraints.maxWidth > 700
+                                ? 3
+                                : 2;
+                        return Wrap(
+                          spacing: 16,
+                          runSpacing: 16,
+                          children: [
+                            _buildStatCard(
+                              Icons.people_rounded,
+                              'Total Pengguna',
+                              '${_stats!.totalUsers}',
+                              '+12%',
+                              true,
+                              AdminTheme.info,
+                              constraints.maxWidth,
+                              crossCount,
+                            ),
+                            _buildStatCard(
+                              Icons.storefront_rounded,
+                              'Total Toko',
+                              '${_stats!.totalSellers}',
+                              '+8%',
+                              true,
+                              AdminTheme.primaryLight,
+                              constraints.maxWidth,
+                              crossCount,
+                            ),
+                            _buildStatCard(
+                              Icons.hourglass_top_rounded,
+                              'Pending Verifikasi',
+                              '${_stats!.pendingVerifications}',
+                              null,
+                              null,
+                              AdminTheme.warning,
+                              constraints.maxWidth,
+                              crossCount,
+                            ),
+                            _buildStatCard(
+                              Icons.receipt_long_rounded,
+                              'Total Pesanan',
+                              '${_stats!.totalOrders}',
+                              '+18%',
+                              true,
+                              AdminTheme.accent,
+                              constraints.maxWidth,
+                              crossCount,
+                            ),
+                            _buildStatCard(
+                              Icons.payments_rounded,
+                              'Total Pendapatan',
+                              _formatCurrency(_stats!.totalRevenue),
+                              '+24%',
+                              true,
+                              AdminTheme.success,
+                              constraints.maxWidth,
+                              crossCount,
+                            ),
+                          ],
+                        );
+                      }),
 
-            const SizedBox(height: 28),
+                      const SizedBox(height: 28),
 
-            // ─── Quick Actions ───────────────────────────
-            _buildQuickActions(),
-          ],
-        ),
-      ),
+                      // ─── Charts Row ──────────────────────────────
+                      LayoutBuilder(builder: (context, constraints) {
+                        if (constraints.maxWidth > 800) {
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(flex: 3, child: _buildOrderTrendChart()),
+                              const SizedBox(width: 16),
+                              Expanded(flex: 2, child: _buildCategoryChart()),
+                            ],
+                          );
+                        }
+                        return Column(
+                          children: [
+                            _buildOrderTrendChart(),
+                            const SizedBox(height: 16),
+                            _buildCategoryChart(),
+                          ],
+                        );
+                      }),
+
+                      const SizedBox(height: 28),
+
+                      // ─── Quick Actions ───────────────────────────
+                      _buildQuickActions(),
+                    ],
+                  ),
+                ),
     );
   }
 
@@ -169,7 +196,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildOrderTrendChart() {
-    final trends = _stats.orderTrends;
+    final trends = _stats!.orderTrends;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -265,7 +292,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildCategoryChart() {
-    final categories = _stats.categoryDistribution;
+    final categories = _stats!.categoryDistribution;
     final colors = [
       AdminTheme.primary,
       AdminTheme.info,
@@ -381,7 +408,7 @@ class _DashboardPageState extends State<DashboardPage> {
             children: [
               _quickActionButton(
                 Icons.verified_user_rounded,
-                'Review Verifikasi (${_stats.pendingVerifications})',
+                'Review Verifikasi (${_stats!.pendingVerifications})',
                 AdminTheme.warning,
                 () => Navigator.of(context)
                     .pushReplacementNamed(AdminRoutes.verification),

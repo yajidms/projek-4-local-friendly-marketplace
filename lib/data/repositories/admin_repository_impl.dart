@@ -7,21 +7,25 @@ import '../../domain/entities/store_category.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/entities/verification_request.dart';
 import '../../domain/repositories/admin_repository.dart';
-import '../datasources/local/admin_mock_datasource.dart';
+import '../datasources/remote/http_admin_remote_datasource.dart';
 
-/// Implementation of [AdminRepository] backed by [AdminMockDatasource].
-/// Swap this with an HTTP-based implementation when the backend API is ready.
+/// Implementation of [AdminRepository] backed by [HttpAdminRemoteDatasource].
+/// All data is fetched from the real backend API (database).
 class AdminRepositoryImpl implements AdminRepository {
-  final AdminMockDatasource _datasource;
+  final HttpAdminRemoteDatasource _datasource;
 
-  AdminRepositoryImpl({AdminMockDatasource? datasource})
-      : _datasource = datasource ?? AdminMockDatasource();
+  AdminRepositoryImpl({HttpAdminRemoteDatasource? datasource})
+      : _datasource = datasource ?? HttpAdminRemoteDatasource();
 
   // ─── Dashboard ───────────────────────────────────────────
 
   @override
+  Future<bool> checkApiConnection() async {
+    return _datasource.checkApiConnection();
+  }
+
+  @override
   Future<AdminDashboardStats> getDashboardStats() async {
-    await Future.delayed(const Duration(milliseconds: 300));
     return _datasource.getDashboardStats();
   }
 
@@ -29,38 +33,36 @@ class AdminRepositoryImpl implements AdminRepository {
 
   @override
   Future<List<VerificationRequest>> getVerificationRequests({String? status}) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    List<VerificationRequest> requests = _datasource.verificationRequests.toList();
+    final requests = await _datasource.getVerificationRequests();
     if (status != null && status.isNotEmpty) {
-      requests = requests.where((r) => r.status.value == status).toList();
+      return requests.where((r) => r.status.value == status).toList();
     }
     return requests;
   }
 
   @override
   Future<VerificationRequest> getVerificationDetail(String id) async {
-    await Future.delayed(const Duration(milliseconds: 150));
-    return _datasource.verificationRequests.firstWhere((VerificationRequest r) => r.id == id);
+    return _datasource.getVerificationDetail(id);
   }
 
   @override
   Future<void> approveStore(String sellerId) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    // In real implementation, this would call the API
+    await _datasource.approveSeller(sellerId);
   }
 
   @override
   Future<void> rejectStore(String sellerId, String reason) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    // In real implementation, this would call the API
+    if (reason.isEmpty) {
+      throw ArgumentError('Alasan penolakan wajib diisi');
+    }
+    await _datasource.rejectSeller(sellerId, reason);
   }
 
   // ─── Users ───────────────────────────────────────────────
 
   @override
   Future<List<User>> getUsers({String? role, String? search}) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    List<User> users = _datasource.users.toList();
+    List<User> users = await _datasource.getUsers();
     if (role != null && role.isNotEmpty) {
       final roleEnum = RoleExtension.fromString(role);
       users = users.where((u) => u.roles.contains(roleEnum)).toList();
@@ -78,21 +80,19 @@ class AdminRepositoryImpl implements AdminRepository {
 
   @override
   Future<User> getUserDetail(String id) async {
-    await Future.delayed(const Duration(milliseconds: 150));
-    return _datasource.users.firstWhere((User u) => u.id == id);
+    return _datasource.getUserById(id);
   }
 
   @override
   Future<void> updateUserStatus(String id, bool isActive) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await _datasource.updateUserStatus(id, isActive);
   }
 
   // ─── Sellers ─────────────────────────────────────────────
 
   @override
   Future<List<Seller>> getSellers({bool? isVerified, String? search}) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    List<Seller> sellers = _datasource.sellers.toList();
+    List<Seller> sellers = await _datasource.getSellers();
     if (isVerified != null) {
       sellers = sellers.where((s) => s.isVerified == isVerified).toList();
     }
@@ -107,16 +107,14 @@ class AdminRepositoryImpl implements AdminRepository {
 
   @override
   Future<Seller> getSellerDetail(String id) async {
-    await Future.delayed(const Duration(milliseconds: 150));
-    return _datasource.sellers.firstWhere((Seller s) => s.id == id);
+    return _datasource.getSellerById(id);
   }
 
   // ─── Products ────────────────────────────────────────────
 
   @override
   Future<List<Product>> getAllProducts({String? category, String? search}) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    List<Product> products = _datasource.products.toList();
+    List<Product> products = await _datasource.getProducts();
     if (category != null && category.isNotEmpty) {
       products = products.where((p) => p.category == category).toList();
     }
@@ -133,8 +131,7 @@ class AdminRepositoryImpl implements AdminRepository {
 
   @override
   Future<List<Order>> getAllOrders({String? status}) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    List<Order> orders = _datasource.orders.toList();
+    List<Order> orders = await _datasource.getOrders();
     if (status != null && status.isNotEmpty) {
       final statusEnum = OrderStatusExtension.fromString(status);
       orders = orders.where((o) => o.status == statusEnum).toList();
@@ -144,30 +141,31 @@ class AdminRepositoryImpl implements AdminRepository {
 
   @override
   Future<Order> getOrderDetail(String id) async {
-    await Future.delayed(const Duration(milliseconds: 150));
-    return _datasource.orders.firstWhere((Order o) => o.id == id);
+    return _datasource.getOrderById(id);
   }
 
   // ─── Categories ──────────────────────────────────────────
 
   @override
   Future<List<StoreCategory>> getCategories() async {
-    await Future.delayed(const Duration(milliseconds: 150));
-    return _datasource.categories;
+    return _datasource.getCategories();
   }
 
   @override
   Future<void> createCategory(StoreCategory category) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    if (category.name.isEmpty) {
+      throw ArgumentError('Nama kategori wajib diisi');
+    }
+    await _datasource.createCategory(category);
   }
 
   @override
   Future<void> updateCategory(StoreCategory category) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await _datasource.updateCategory(category);
   }
 
   @override
   Future<void> deleteCategory(String id) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    await _datasource.deleteCategory(id);
   }
 }

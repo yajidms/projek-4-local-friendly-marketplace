@@ -1,11 +1,41 @@
 import 'package:flutter/material.dart';
 
+import '../../../config/env.dart';
+import '../../../domain/repositories/admin_repository.dart';
 import '../../routes/admin_router.dart';
 import '../../theme/admin_theme.dart';
+import '../../widgets/admin_provider.dart';
 import '../../widgets/admin_scaffold.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  late final AdminRepository _repo;
+  bool _apiConnected = false;
+  bool _checking = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _repo = AdminProvider.read(context);
+    _checkConnection();
+  }
+
+  Future<void> _checkConnection() async {
+    setState(() => _checking = true);
+    try {
+      // Use dedicated health check endpoint
+      final isConnected = await _repo.checkApiConnection();
+      if (mounted) setState(() { _apiConnected = isConnected; _checking = false; });
+    } catch (_) {
+      if (mounted) setState(() { _apiConnected = false; _checking = false; });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,8 +59,8 @@ class SettingsPage extends StatelessWidget {
 
             // Admin profile
             _section('Profil Admin', Icons.person_rounded, [
-              _field('Nama', 'Ahmad Fauzi'),
-              _field('Email', 'ahmad.fauzi@mail.com'),
+              _field('Nama', 'Administrator'),
+              _field('Email', 'admin@pade.com'),
               _field('Role', 'Administrator'),
             ]),
             const SizedBox(height: 20),
@@ -38,23 +68,39 @@ class SettingsPage extends StatelessWidget {
             // App info
             _section('Informasi Aplikasi', Icons.info_rounded, [
               _field('Versi', '1.0.0'),
-              _field('Backend', 'MongoDB Atlas'),
+              _field('Backend', Env.backendUrl.isNotEmpty ? Env.backendUrl : 'Tidak dikonfigurasi'),
               _field('Framework', 'Flutter Web'),
-              _field('Status API', 'Mock Data (Development)'),
+              _field('Status API', _checking
+                  ? 'Memeriksa...'
+                  : _apiConnected
+                      ? '✅ Terhubung ke Database'
+                      : '❌ Tidak terhubung'),
             ]),
             const SizedBox(height: 24),
 
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Pengaturan disimpan'), backgroundColor: AdminTheme.success),
-                  );
-                },
-                child: const Text('Simpan Pengaturan'),
-              ),
+            Row(
+              children: [
+                SizedBox(
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: _checkConnection,
+                    icon: const Icon(Icons.refresh_rounded, size: 18),
+                    label: const Text('Periksa Koneksi'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Pengaturan disimpan'), backgroundColor: AdminTheme.success),
+                      );
+                    },
+                    child: const Text('Simpan Pengaturan'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -1,131 +1,166 @@
 import 'package:flutter/material.dart';
 
-import '../../../data/datasources/local/admin_mock_datasource.dart';
-import '../../../domain/entities/product.dart';
 import '../../../domain/entities/seller.dart';
+import '../../../domain/repositories/admin_repository.dart';
 import '../../routes/admin_router.dart';
 import '../../theme/admin_theme.dart';
+import '../../widgets/admin_provider.dart';
 import '../../widgets/admin_scaffold.dart';
-import '../../widgets/stat_card.dart';
 import '../../widgets/status_badge.dart';
 
-class SellerDetailPage extends StatelessWidget {
+class SellerDetailPage extends StatefulWidget {
   const SellerDetailPage({super.key, required this.id});
   final String id;
 
   @override
-  Widget build(BuildContext context) {
-    final ds = AdminMockDatasource();
-    final Seller seller = ds.sellers.firstWhere((Seller s) => s.id == id);
-    final List<Product> products = ds.products.where((Product p) => p.sellerId == id).toList();
+  State<SellerDetailPage> createState() => _SellerDetailPageState();
+}
 
+class _SellerDetailPageState extends State<SellerDetailPage> {
+  late final AdminRepository _repo;
+  Seller? _seller;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _repo = AdminProvider.read(context);
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final seller = await _repo.getSellerDetail(widget.id);
+      if (mounted) setState(() { _seller = seller; _loading = false; });
+    } catch (e) {
+      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AdminScaffold(
       currentRoute: AdminRoutes.sellers,
-      title: seller.shopName,
-      subtitle: seller.shopAddress ?? '',
-      headerActions: [
-        OutlinedButton.icon(
-          onPressed: () => Navigator.of(context).pushReplacementNamed(AdminRoutes.sellers),
-          icon: const Icon(Icons.arrow_back_rounded, size: 16),
-          label: const Text('Kembali'),
-        ),
-      ],
-      body: SingleChildScrollView(
+      title: 'Detail Penjual',
+      subtitle: _seller?.shopName ?? '',
+      body: _loading
+          ? const Center(child: CircularProgressIndicator(color: AdminTheme.primaryLight))
+          : _error != null
+              ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.error_outline, color: AdminTheme.danger, size: 48),
+                  const SizedBox(height: 12),
+                  Text(_error!, style: const TextStyle(color: AdminTheme.textMuted, fontSize: 13)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(onPressed: _loadData, child: const Text('Coba Lagi')),
+                ]))
+              : SingleChildScrollView(
         padding: const EdgeInsets.all(28),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              spacing: 16,
-              runSpacing: 16,
-              children: [
-                SizedBox(width: 200, child: StatCard(icon: Icons.inventory_2_rounded, label: 'Total Produk', value: '${seller.totalProducts}', color: AdminTheme.info)),
-                SizedBox(width: 200, child: StatCard(icon: Icons.star_rounded, label: 'Rating', value: seller.ratingString, color: AdminTheme.accent)),
-                SizedBox(width: 200, child: StatCard(icon: Icons.reviews_rounded, label: 'Ulasan', value: '${seller.totalReviews}', color: AdminTheme.primaryLight)),
-              ],
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          TextButton.icon(
+            onPressed: () => Navigator.of(context).pushReplacementNamed(AdminRoutes.sellers),
+            icon: const Icon(Icons.arrow_back_rounded, size: 18),
+            label: const Text('Kembali ke daftar'),
+          ),
+          const SizedBox(height: 20),
+
+          // Shop Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AdminTheme.bgCard,
+              borderRadius: BorderRadius.circular(AdminTheme.radiusMd),
+              border: Border.all(color: AdminTheme.border),
             ),
-            const SizedBox(height: 24),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(color: AdminTheme.bgCard, borderRadius: BorderRadius.circular(AdminTheme.radiusMd), border: Border.all(color: AdminTheme.border)),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Informasi Toko', style: TextStyle(color: AdminTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
-                        const SizedBox(height: 16),
-                        _info('Nama', seller.shopName),
-                        _info('Deskripsi', seller.shopDescription ?? '-'),
-                        _info('Alamat', seller.shopAddress ?? '-'),
-                        _info('Telepon', seller.shopPhone ?? '-'),
-                        _info('Kategori', seller.categories.join(', ')),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            seller.isVerified ? StatusBadge.verified() : StatusBadge.pending(),
-                            const SizedBox(width: 8),
-                            seller.isActive ? StatusBadge.active() : StatusBadge.inactive(),
-                            const SizedBox(width: 8),
-                            seller.isOnline ? StatusBadge.online() : StatusBadge.offline(),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(color: AdminTheme.bgCard, borderRadius: BorderRadius.circular(AdminTheme.radiusMd), border: Border.all(color: AdminTheme.border)),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Produk (${products.length})', style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
-                        const SizedBox(height: 16),
-                        if (products.isEmpty)
-                          const Text('Belum ada produk.', style: TextStyle(color: AdminTheme.textMuted))
-                        else
-                          ...products.take(10).map((Product p) => Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(color: AdminTheme.bgSurface, borderRadius: BorderRadius.circular(AdminTheme.radiusSm), border: Border.all(color: AdminTheme.border)),
-                            child: Row(
-                              children: [
-                                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                  Text(p.name, style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 14, fontWeight: FontWeight.w500)),
-                                  Text(p.category, style: const TextStyle(color: AdminTheme.textMuted, fontSize: 12)),
-                                ])),
-                                Text('Rp ${p.price.toStringAsFixed(0)}', style: const TextStyle(color: AdminTheme.primaryLight, fontWeight: FontWeight.w600, fontSize: 14)),
-                                const SizedBox(width: 12),
-                                StatusBadge(label: 'Stok: ${p.quantity}', color: p.quantity > 0 ? AdminTheme.success : AdminTheme.danger),
-                              ],
-                            ),
-                          )),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+            child: Row(children: [
+              Container(
+                width: 56, height: 56,
+                decoration: BoxDecoration(color: AdminTheme.primary.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
+                child: const Icon(Icons.storefront_rounded, color: AdminTheme.primaryLight, size: 28),
+              ),
+              const SizedBox(width: 20),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(_seller!.shopName, style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 20, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 4),
+                Text(_seller!.shopDescription ?? '-', style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 13)),
+              ])),
+              _seller!.isVerified ? StatusBadge.verified() : StatusBadge.pending(),
+            ]),
+          ),
+          const SizedBox(height: 20),
+
+          // Stats row
+          Row(children: [
+            _statCard(Icons.star_rounded, 'Rating', _seller!.rating.toStringAsFixed(1), AdminTheme.warning),
+            const SizedBox(width: 16),
+            _statCard(Icons.inventory_2_rounded, 'Produk', '${_seller!.totalProducts}', AdminTheme.info),
+            const SizedBox(width: 16),
+            _statCard(Icons.reviews_rounded, 'Review', '${_seller!.totalReviews}', AdminTheme.accent),
+            const SizedBox(width: 16),
+            _statCard(Icons.circle, _seller!.isOnline ? 'Online' : 'Offline', _seller!.isOnline ? 'Ya' : 'Tidak', _seller!.isOnline ? AdminTheme.success : AdminTheme.textMuted),
+          ]),
+          const SizedBox(height: 20),
+
+          // Detail Info
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(child: _card('Informasi Toko', [
+              _infoRow('Alamat', _seller!.shopAddress ?? '-'),
+              _infoRow('Telepon', _seller!.shopPhone ?? '-'),
+              _infoRow('Kategori', _seller!.categories.join(', ')),
+              _infoRow('Terdaftar', '${_seller!.createdAt.day}/${_seller!.createdAt.month}/${_seller!.createdAt.year}'),
+            ])),
+            const SizedBox(width: 16),
+            Expanded(child: _card('Lokasi', [
+              _infoRow('Latitude', _seller!.location?.latitude.toStringAsFixed(6) ?? '-'),
+              _infoRow('Longitude', _seller!.location?.longitude.toStringAsFixed(6) ?? '-'),
+            ])),
+          ]),
+        ]),
       ),
     );
   }
 
-  Widget _info(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SizedBox(width: 100, child: Text(label, style: const TextStyle(color: AdminTheme.textMuted, fontSize: 13))),
-        Expanded(child: Text(value, style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 14))),
+  Widget _statCard(IconData icon, String label, String value, Color color) => Expanded(
+    child: Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AdminTheme.bgCard,
+        borderRadius: BorderRadius.circular(AdminTheme.radiusMd),
+        border: Border.all(color: AdminTheme.border),
+      ),
+      child: Column(children: [
+        Icon(icon, color: color, size: 24),
+        const SizedBox(height: 8),
+        Text(value, style: TextStyle(color: color, fontSize: 22, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 12)),
       ]),
-    );
-  }
+    ),
+  );
+
+  Widget _card(String title, List<Widget> rows) => Container(
+    padding: const EdgeInsets.all(24),
+    decoration: BoxDecoration(
+      color: AdminTheme.bgCard,
+      borderRadius: BorderRadius.circular(AdminTheme.radiusMd),
+      border: Border.all(color: AdminTheme.border),
+    ),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(title, style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
+      const SizedBox(height: 16),
+      const Divider(height: 1, color: AdminTheme.border),
+      const SizedBox(height: 12),
+      ...rows,
+    ]),
+  );
+
+  Widget _infoRow(String label, String value) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 6),
+    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      SizedBox(width: 120, child: Text(label, style: const TextStyle(color: AdminTheme.textMuted, fontSize: 13))),
+      Expanded(child: Text(value, style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 13))),
+    ]),
+  );
 }

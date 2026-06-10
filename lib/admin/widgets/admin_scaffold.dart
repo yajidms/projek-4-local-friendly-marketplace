@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import '../routes/admin_router.dart';
 import '../theme/admin_theme.dart';
 import 'admin_header.dart';
+import 'admin_provider.dart';
 import 'sidebar/admin_sidebar.dart';
 
 /// Main layout shell for all admin dashboard pages.
 /// Wraps content with sidebar navigation and header bar.
+/// Fetches real pending verification count from the database.
 class AdminScaffold extends StatefulWidget {
   const AdminScaffold({
     super.key,
@@ -28,6 +30,23 @@ class AdminScaffold extends StatefulWidget {
 
 class _AdminScaffoldState extends State<AdminScaffold> {
   bool _isCollapsed = false;
+  int _pendingCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPendingCount();
+  }
+
+  Future<void> _loadPendingCount() async {
+    try {
+      final repo = AdminProvider.read(context);
+      final requests = await repo.getVerificationRequests(status: 'pending');
+      if (mounted) setState(() => _pendingCount = requests.length);
+    } catch (_) {
+      // Silently ignore — keep count at 0
+    }
+  }
 
   void _handleNavigate(String route) {
     if (route != widget.currentRoute) {
@@ -52,7 +71,7 @@ class _AdminScaffoldState extends State<AdminScaffold> {
                   Navigator.of(context).pop(); // close drawer
                   _handleNavigate(route);
                 },
-                pendingVerifications: 3,
+                pendingVerifications: _pendingCount,
               ),
             )
           : null,
@@ -63,7 +82,7 @@ class _AdminScaffoldState extends State<AdminScaffold> {
             AdminSidebar(
               currentRoute: widget.currentRoute,
               onNavigate: _handleNavigate,
-              pendingVerifications: 3,
+              pendingVerifications: _pendingCount,
               isCollapsed: _isCollapsed,
               onToggleCollapse: () {
                 setState(() => _isCollapsed = !_isCollapsed);

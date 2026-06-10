@@ -10,6 +10,7 @@ import '../entities/verification_request.dart';
 /// Implementations can use mock data or real HTTP API calls.
 abstract class AdminRepository {
   // ─── Dashboard ───────────────────────────────────────────
+  Future<bool> checkApiConnection();
   Future<AdminDashboardStats> getDashboardStats();
 
   // ─── Verification ────────────────────────────────────────
