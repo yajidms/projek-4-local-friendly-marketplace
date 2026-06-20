@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../config/env.dart';
-import '../../core/auth/auth_bootstrap.dart';
-import '../../core/auth/auth_facade.dart';
-import '../../domain/entities/role.dart';
 import '../routes/admin_router.dart';
 import '../theme/admin_theme.dart';
+import '../../data/datasources/remote/http_auth_remote_datasource.dart';
 
 /// Admin login page with email/password form and PaDe branding.
 class AdminLoginPage extends StatefulWidget {
@@ -23,15 +20,9 @@ class _AdminLoginPageState extends State<AdminLoginPage>
   late AnimationController _animCtrl;
   late Animation<double> _fadeAnim;
 
-  late final AuthFacade _authFacade;
-  bool _useRemote = false;
-
   @override
   void initState() {
     super.initState();
-    _authFacade = AuthBootstrap.build();
-    _useRemote = Env.hasConfiguredBackendUrl && !Env.usesMongoConnectionString;
-    
     _animCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -51,36 +42,22 @@ class _AdminLoginPageState extends State<AdminLoginPage>
   Future<void> _login() async {
     setState(() => _loading = true);
     try {
-      final email = _emailController.text.trim();
-      final password = _passwordController.text;
-
-      final auth = await _authFacade.login(
-        email: email,
-        password: password,
-        useRemote: _useRemote,
-      );
-
+      final authDataSource = HttpAuthRemoteDataSource();
+      await authDataSource.login(_emailController.text, _passwordController.text);
       if (mounted) {
-        // Cek jika user memiliki role admin
-        if (auth.user.roles.contains(Role.admin)) {
-          Navigator.of(context).pushReplacementNamed(AdminRoutes.dashboard);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Akses ditolak: Anda bukan admin')),
-          );
-          await _authFacade.logout(useRemote: _useRemote);
-        }
+        Navigator.of(context).pushReplacementNamed(AdminRoutes.dashboard);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login gagal: $e')),
+          SnackBar(
+            content: Text('Login gagal: ${e.toString()}'),
+            backgroundColor: AdminTheme.danger,
+          ),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+      if (mounted) setState(() => _loading = false);
     }
   }
 

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../data/datasources/remote/admin_api_datasource.dart';
 import '../../../domain/entities/verification_request.dart';
-import '../../../domain/repositories/admin_repository.dart';
 import '../../routes/admin_router.dart';
 import '../../theme/admin_theme.dart';
-import '../../widgets/admin_provider.dart';
 import '../../widgets/admin_scaffold.dart';
 import '../../widgets/status_badge.dart';
 
@@ -16,8 +15,7 @@ class VerificationListPage extends StatefulWidget {
 }
 
 class _VerificationListPageState extends State<VerificationListPage> {
-  late final AdminRepository _repo;
-  List<VerificationRequest> _allRequests = [];
+  List<VerificationRequest> _requests = [];
   bool _loading = true;
   String? _error;
   String _filter = 'all';
@@ -26,22 +24,31 @@ class _VerificationListPageState extends State<VerificationListPage> {
   @override
   void initState() {
     super.initState();
-    _repo = AdminProvider.read(context);
-    _loadData();
+    _fetchRequests();
   }
 
-  Future<void> _loadData() async {
-    setState(() { _loading = true; _error = null; });
+  Future<void> _fetchRequests() async {
     try {
-      final requests = await _repo.getVerificationRequests();
-      if (mounted) setState(() { _allRequests = requests; _loading = false; });
+      final ds = AdminApiDatasource();
+      final requests = await ds.getVerificationRequests();
+      if (mounted) {
+        setState(() {
+          _requests = requests;
+          _loading = false;
+        });
+      }
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
+      }
     }
   }
 
   List<VerificationRequest> get _filteredRequests {
-    List<VerificationRequest> list = _allRequests.toList();
+    List<VerificationRequest> list = _requests.toList();
     if (_filter != 'all') {
       list = list.where((VerificationRequest r) => r.status.name == _filter).toList();
     }
@@ -65,15 +72,9 @@ class _VerificationListPageState extends State<VerificationListPage> {
       title: 'Verifikasi Toko',
       subtitle: 'Moderasi dan persetujuan pendaftaran toko baru',
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AdminTheme.primaryLight))
+          ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Icon(Icons.error_outline, color: AdminTheme.danger, size: 48),
-                  const SizedBox(height: 12),
-                  Text(_error!, style: const TextStyle(color: AdminTheme.textMuted, fontSize: 13)),
-                  const SizedBox(height: 16),
-                  ElevatedButton(onPressed: _loadData, child: const Text('Coba Lagi')),
-                ]))
+              ? Center(child: Text('Error: $_error', style: const TextStyle(color: AdminTheme.danger)))
               : Padding(
         padding: const EdgeInsets.all(28),
         child: Column(

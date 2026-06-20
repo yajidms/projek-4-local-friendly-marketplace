@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../config/env.dart';
-import '../../../domain/repositories/admin_repository.dart';
+import 'dart:convert';
+import '../../../data/datasources/remote/admin_api_datasource.dart';
+import '../../../data/services/token_manager.dart';
 import '../../routes/admin_router.dart';
 import '../../theme/admin_theme.dart';
-import '../../widgets/admin_provider.dart';
 import '../../widgets/admin_scaffold.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -15,25 +15,71 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  late final AdminRepository _repo;
-  bool _apiConnected = false;
-  bool _checking = true;
+  String _adminName = 'Mengambil data...';
+  String _adminEmail = 'Mengambil data...';
+  String _adminRole = 'Administrator';
+  bool _isApiOnline = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _repo = AdminProvider.read(context);
-    _checkConnection();
+    _loadData();
   }
 
-  Future<void> _checkConnection() async {
-    setState(() => _checking = true);
+  Future<void> _loadData() async {
     try {
-      // Use dedicated health check endpoint
-      final isConnected = await _repo.checkApiConnection();
-      if (mounted) setState(() { _apiConnected = isConnected; _checking = false; });
+      final ds = AdminApiDatasource();
+      
+      // Check API Health
+      final isOnline = await ds.checkHealth();
+      
+      // Get User from JWT
+      String? name;
+      String? email;
+      String? role;
+      
+      final token = TokenManager.instance.accessToken;
+      if (token != null) {
+        final parts = token.split('.');
+        if (parts.length >= 2) {
+          final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+          final json = jsonDecode(payload) as Map<String, dynamic>;
+          final userId = json['user_id'] as String?;
+          
+          if (userId != null) {
+            final user = await ds.getUserById(userId);
+            if (user != null) {
+              name = user.name;
+              email = user.email;
+              role = user.roles.isNotEmpty ? user.roles.first.name.toUpperCase() : 'Administrator';
+            }
+          }
+          
+          if (name == null) {
+            name = json['name'];
+            email = json['email'];
+          }
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _isApiOnline = isOnline;
+          _adminName = name ?? 'Administrator';
+          _adminEmail = email ?? 'admin@pade.com';
+          _adminRole = role ?? 'Administrator';
+          _isLoading = false;
+        });
+      }
     } catch (_) {
-      if (mounted) setState(() { _apiConnected = false; _checking = false; });
+      if (mounted) {
+        setState(() {
+          _adminName = 'Administrator';
+          _adminEmail = 'admin@pade.com';
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -59,48 +105,65 @@ class _SettingsPageState extends State<SettingsPage> {
 
             // Admin profile
             _section('Profil Admin', Icons.person_rounded, [
-              _field('Nama', 'Administrator'),
-              _field('Email', 'admin@pade.com'),
-              _field('Role', 'Administrator'),
+              _field('Nama', _adminName),
+              _field('Email', _adminEmail),
+              _field('Role', _adminRole),
             ]),
             const SizedBox(height: 20),
 
             // App info
             _section('Informasi Aplikasi', Icons.info_rounded, [
               _field('Versi', '1.0.0'),
-              _field('Backend', Env.backendUrl.isNotEmpty ? Env.backendUrl : 'Tidak dikonfigurasi'),
+              _field('Backend', 'MongoDB Atlas + Fiber Go'),
               _field('Framework', 'Flutter Web'),
-              _field('Status API', _checking
-                  ? 'Memeriksa...'
-                  : _apiConnected
-                      ? '✅ Terhubung ke Database'
-                      : '❌ Tidak terhubung'),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(
+                      width: 150,
+                      child: Text('Status API', style: TextStyle(color: AdminTheme.textMuted, fontSize: 14, fontWeight: FontWeight.w500)),
+                    ),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          _isLoading 
+                            ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                            : Icon(
+                                _isApiOnline ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                                color: _isApiOnline ? AdminTheme.success : AdminTheme.danger,
+                                size: 16,
+                              ),
+                          const SizedBox(width: 6),
+                          Text(
+                            _isLoading ? 'Mengecek...' : (_isApiOnline ? 'Online' : 'Offline'),
+                            style: TextStyle(
+                              color: _isApiOnline ? AdminTheme.success : AdminTheme.danger,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ]),
             const SizedBox(height: 24),
 
-            Row(
-              children: [
-                SizedBox(
-                  height: 48,
-                  child: ElevatedButton.icon(
-                    onPressed: _checkConnection,
-                    icon: const Icon(Icons.refresh_rounded, size: 18),
-                    label: const Text('Periksa Koneksi'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Pengaturan disimpan'), backgroundColor: AdminTheme.success),
-                      );
-                    },
-                    child: const Text('Simpan Pengaturan'),
-                  ),
-                ),
-              ],
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Pengaturan disimpan'), backgroundColor: AdminTheme.success),
+                  );
+                },
+                child: const Text('Simpan Pengaturan'),
+              ),
             ),
           ],
         ),

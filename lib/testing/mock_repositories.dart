@@ -473,6 +473,13 @@ class MockOrderRepository implements OrderRepository {
   }
 
   @override
+  Future<List<Order>> getOrdersByBuyer(String buyerId) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return _orders.where((o) => o.userId == buyerId).toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  }
+
+  @override
   Future<Order?> getOrderById(String orderId) async {
     await Future.delayed(const Duration(milliseconds: 200));
     try {

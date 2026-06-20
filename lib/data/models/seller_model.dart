@@ -173,15 +173,29 @@ class SellerModel {
     final locationValue = normalized['location'];
     if (locationValue is Map<String, dynamic>) {
       final locationMap = Map<String, dynamic>.from(locationValue);
-      final normalizedLat = _asDouble(locationMap['latitude'] ?? locationMap['lat']);
-      final normalizedLng =
-          _asDouble(locationMap['longitude'] ?? locationMap['lng'] ?? locationMap['long']);
-      if (normalizedLat != null && normalizedLng != null) {
-        locationMap['latitude'] = normalizedLat;
-        locationMap['longitude'] = normalizedLng;
-        normalized['location'] = locationMap;
+      
+      // Deteksi format GeoJSON Point (backend MongoDB)
+      if (locationMap['type'] == 'Point' && locationMap['coordinates'] is List) {
+        final coords = locationMap['coordinates'] as List;
+        if (coords.length >= 2) {
+          locationMap['longitude'] = _asDouble(coords[0]);
+          locationMap['latitude'] = _asDouble(coords[1]);
+          normalized['location'] = locationMap;
+        } else {
+          normalized['location'] = null;
+        }
       } else {
-        normalized['location'] = null;
+        // Fallback untuk format { latitude: X, longitude: Y }
+        final normalizedLat = _asDouble(locationMap['latitude'] ?? locationMap['lat']);
+        final normalizedLng =
+            _asDouble(locationMap['longitude'] ?? locationMap['lng'] ?? locationMap['long']);
+        if (normalizedLat != null && normalizedLng != null) {
+          locationMap['latitude'] = normalizedLat;
+          locationMap['longitude'] = normalizedLng;
+          normalized['location'] = locationMap;
+        } else {
+          normalized['location'] = null;
+        }
       }
     } else {
       final lat = _asDouble(normalized['lat']);

@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../domain/repositories/admin_repository.dart';
 import '../theme/admin_theme.dart';
-import 'admin_provider.dart';
 
 /// Top header bar for the admin dashboard pages.
-/// Shows notification badge with real pending verification count from database.
-class AdminHeader extends StatefulWidget {
+class AdminHeader extends StatelessWidget {
   const AdminHeader({
     super.key,
     required this.title,
@@ -16,29 +13,6 @@ class AdminHeader extends StatefulWidget {
   final String title;
   final String? subtitle;
   final List<Widget>? actions;
-
-  @override
-  State<AdminHeader> createState() => _AdminHeaderState();
-}
-
-class _AdminHeaderState extends State<AdminHeader> {
-  int _pendingCount = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadPendingCount();
-  }
-
-  Future<void> _loadPendingCount() async {
-    try {
-      final repo = AdminProvider.read(context);
-      final requests = await repo.getVerificationRequests(status: 'pending');
-      if (mounted) setState(() => _pendingCount = requests.length);
-    } catch (_) {
-      // Silently ignore — keep count at 0
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,17 +31,17 @@ class _AdminHeaderState extends State<AdminHeader> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.title,
+                  title,
                   style: const TextStyle(
                     color: AdminTheme.textPrimary,
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                if (widget.subtitle != null) ...[
+                if (subtitle != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    widget.subtitle!,
+                    subtitle!,
                     style: const TextStyle(
                       color: AdminTheme.textSecondary,
                       fontSize: 14,
@@ -77,14 +51,13 @@ class _AdminHeaderState extends State<AdminHeader> {
               ],
             ),
           ),
-          if (widget.actions != null) ...widget.actions!,
+          if (actions != null) ...actions!,
           const SizedBox(width: 16),
-          // Notification bell — real pending count
+          // Notification bell
           IconButton(
             onPressed: () {},
             icon: Badge(
-              isLabelVisible: _pendingCount > 0,
-              label: Text('$_pendingCount'),
+              label: const Text('3'),
               backgroundColor: AdminTheme.danger,
               child: const Icon(Icons.notifications_outlined,
                   color: AdminTheme.textSecondary),
